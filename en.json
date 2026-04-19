@@ -1,0 +1,53 @@
+{
+  "ui": {
+    "works": "/works",
+    "seeMore": "See more"
+  },
+  "projects": {
+    "banana-bank": {
+      "title": "Banana Bank",
+      "desc": "Playful fintech brand with bold visuals",
+      "date": "2024"
+    },
+    "nuef": {
+      "title": "NUEF",
+      "desc": "Minimalist product page for a design-driven project",
+      "date": "2023"
+    },
+    "chainproxy": {
+      "title": "ChainProxy",
+      "desc": "Web3 infrastructure platform with custom animations",
+      "date": "2024"
+    },
+    "qucksms": {
+      "title": "QuckSMS",
+      "desc": "SMS automation tool with developer-first UI",
+      "date": "2023"
+    },
+    "xmrcrash": {
+      "title": "XMR Crash",
+      "desc": "Dark trading game concept around Monero volatility",
+      "date": "2022"
+    },
+    "omikami": {
+      "title": "Omikami",
+      "desc": "Creative identity for an energy brand",
+      "date": "2024"
+    },
+    "syrnik": {
+      "title": "SYRNIK.DEV",
+      "desc": "Game studio website with a cheesecake mascot",
+      "date": "2025"
+    },
+    "blackhole": {
+      "title": "Blackhole",
+      "desc": "Experimental portfolio concept with generative distortion",
+      "date": "2022"
+    },
+    "dotaboom": {
+      "title": "Dotaboom",
+      "desc": "Fan-based community site for Dota 2 insights",
+      "date": "2023"
+    }
+  }
+}
