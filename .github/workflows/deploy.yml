@@ -22,15 +22,11 @@ jobs:
       - name: Deploy via lftp SFTP
         run: |
           sudo apt-get install -y lftp
-          lftp -c "
-            set sftp:auto-confirm yes;
-            set net:timeout 30;
-            set sftp:connect-program 'ssh -a -x -i ~/.ssh/id_rsa -p 21098 -o StrictHostKeyChecking=no';
-            open sftp://${{ secrets.SSH_USER }}@${{ secrets.FTP_HOST }};
-            mirror --reverse --delete --verbose \
-              --exclude-glob .git \
-              --exclude-glob .github \
-              --exclude-glob .vscode \
-              . /home/elkhjobe/public_html/;
-            quit
-          "
+          cat > /tmp/deploy.lftp << EOF
+          set sftp:connect-program "ssh -a -x -i /home/runner/.ssh/id_rsa -p 21098 -o StrictHostKeyChecking=no"
+          set net:timeout 30
+          open sftp://${{ secrets.SSH_USER }}@${{ secrets.FTP_HOST }}
+          mirror --reverse --delete --verbose --exclude-glob .git --exclude-glob .github --exclude-glob .vscode . /home/elkhjobe/public_html/
+          quit
+          EOF
+          lftp -f /tmp/deploy.lftp
