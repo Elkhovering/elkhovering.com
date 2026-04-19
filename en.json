@@ -1,7 +1,37 @@
 {
   "ui": {
     "works": "/works",
-    "seeMore": "See more"
+    "seeMore": "See more",
+    "open": "Open",
+    "copy": "Copy",
+    "copied": "✓ Copied"
+  },
+  "hero": {
+    "title": "Creative <br /> developer",
+    "tagline": "I Am a core idea generator of your projects"
+  },
+  "about": {
+    "title": "/about",
+    "p1": "Passionate about technologies. I love working at the intersection of creativity and complex interactions. I create memorable web experiences.",
+    "p2": "When I'm not building or exploring new web experiences, i'm probably playing video games or gardening.",
+    "blend": "A blend of UI and product engineering",
+    "desc1": "With a background in design, I work closely with design focused teams to build websites and microsites for companies and individuals. I have years of experience working and collaborating on product teams and leading engineering efforts.",
+    "desc2": "With my experience in UI and product engineering, I solve product problems and build appealing usable web experiences.",
+    "link": "More about me and services"
+  },
+  "services": {
+    "title": "/I provide",
+    "s1": "Creative <br /> websites",
+    "s2": "Brand <br /> develop&shy;ment",
+    "s3": "nft & <br />crypto design",
+    "s4": "consulting <br />& audit",
+    "s5": "team <br />leading",
+    "s6": "educat&shy;ional <br />lectures"
+  },
+  "contacts": {
+    "title": "/Contacts",
+    "q1": "want to work <br /> together?",
+    "q2": "send me <br /> a message"
   },
   "projects": {
     "banana-bank": {

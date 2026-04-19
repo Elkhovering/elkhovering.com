@@ -180,9 +180,9 @@ document.addEventListener("mouseover", (e) => {
   if (!el) return;
 
   const type = el.dataset.cursor;
-  if (type === "see-more") cursor.textContent = "See more";
-  else if (type === "open") cursor.textContent = "Open";
-  else if (type === "copy") cursor.textContent = "Copy";
+  if (type === "see-more") cursor.textContent = translations.ui?.seeMore || "See more";
+  else if (type === "open") cursor.textContent = translations.ui?.open || "Open";
+  else if (type === "copy") cursor.textContent = translations.ui?.copy || "Copy";
 
   document.body.classList.add("cursor-active");
   cursor.style.opacity = "1";
@@ -205,9 +205,9 @@ document.addEventListener("click", (e) => {
   if (textToCopy) {
     e.preventDefault();
     navigator.clipboard.writeText(textToCopy).then(() => {
-      cursor.textContent = "✓ Copied";
+      cursor.textContent = translations.ui?.copied || "✓ Copied";
       setTimeout(() => {
-        cursor.textContent = "Copy";
+        cursor.textContent = translations.ui?.copy || "Copy";
       }, 1000);
     });
   }
@@ -234,7 +234,7 @@ function applyTranslations() {
     const path = el.dataset.i18n.split(".");
     let value = translations;
     path.forEach((key) => (value = value?.[key]));
-    if (value) el.textContent = value;
+    if (value) el.innerHTML = value;
   });
 }
 
@@ -248,7 +248,7 @@ document.querySelectorAll(".work-image").forEach((img) => {
       document.getElementById("projectTitle").textContent = data.title;
       document.getElementById("projectDesc").textContent = data.desc;
       document.getElementById("projectDate").textContent = data.date;
-      document.getElementsByClassName("project-overlay").style.opacity = "1";
+      document.getElementById("projectOverlay").style.opacity = "1";
     }
   });
 
