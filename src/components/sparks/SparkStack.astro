@@ -1,0 +1,131 @@
+---
+// «Разобранный» 3-слойный объект: показывает финальную композицию и рядом
+// (или по наведению) разведённые слои. Использую для банана-катаны и для
+// стопки фишек/кубиков.
+//
+// Пропы:
+//   layers: string[] — массив путей, порядок от заднего слоя к переднему
+//   caption?: string — описание
+//   title?: string   — короткий заголовок над композицией
+//   background?: string
+//   spread?: number  — насколько разносить слои при hover (px), дефолт 40
+interface Props {
+  layers: string[];
+  caption?: string;
+  title?: string;
+  background?: string;
+  spread?: number;
+}
+const { layers, caption, title, background = '#1a0b2e', spread = 60 } = Astro.props;
+---
+<figure class="spark-stack" style={`--spark-bg: ${background}; --spark-spread: ${spread}px;`}>
+  {title && <div class="spark-stack-title">{title}</div>}
+
+  <div class="spark-stack-grid">
+    {/* Финальная композиция — все слои сложены вместе */}
+    <div class="spark-stack-composed">
+      <div class="spark-stack-label">Composed</div>
+      <div class="spark-stack-frame">
+        {layers.map((src, i) => (
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            style={`z-index: ${i + 1};`}
+          />
+        ))}
+      </div>
+    </div>
+
+    {/* Разобранная версия — слои разнесены по вертикали */}
+    <div class="spark-stack-exploded">
+      <div class="spark-stack-label">Layers</div>
+      <div class="spark-stack-frame">
+        {layers.map((src, i) => (
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            style={`z-index: ${i + 1}; --explode: calc(var(--spark-spread) * ${i - (layers.length - 1) / 2});`}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .spark-stack {
+    margin: 4rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .spark-stack-title {
+    font-family: medium;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+  .spark-stack-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .spark-stack-composed,
+  .spark-stack-exploded {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .spark-stack-label {
+    font-family: medium;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.45;
+  }
+  .spark-stack-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--spark-bg);
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .spark-stack-frame img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    max-width: 75%;
+    max-height: 75%;
+    object-fit: contain;
+    transform: translate(-50%, -50%);
+    transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+  .spark-stack-exploded .spark-stack-frame img {
+    /* перекрываем инлайновый transform корректной компоновкой */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) translateY(var(--explode, 0px));
+  }
+  /* Инлайновый style у каждого img задаёт translateY вручную — оставляем. */
+  .spark-stack figcaption {
+    font-family: roman;
+    font-size: 15px;
+    line-height: 1.45;
+    opacity: 0.7;
+    max-width: 52ch;
+    margin: 0.5rem 0 0;
+  }
+
+  @media (max-width: 640px) {
+    .spark-stack-grid { grid-template-columns: 1fr; }
+  }
+</style>

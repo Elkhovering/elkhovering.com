@@ -1,0 +1,31 @@
+---
+// Ряд из N изолированных визуалов. Принимает слот со списком <SparkSolo />.
+// Все SparkSolo внутри row теряют свой вертикальный margin — row сам им задаёт gap.
+interface Props {
+  columns?: number; // 2 | 3
+}
+const { columns = 3 } = Astro.props;
+---
+<div class={`spark-row spark-row-${columns}`}>
+  <slot />
+</div>
+
+<style>
+  .spark-row {
+    display: grid;
+    gap: 1rem;
+    margin: 3rem 0;
+  }
+  .spark-row-2 { grid-template-columns: 1fr 1fr; }
+  .spark-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  /* Обнуляем вертикальные отступы у вложенных SparkSolo */
+  .spark-row :global(.spark-solo) {
+    margin: 0;
+  }
+
+  @media (max-width: 760px) {
+    .spark-row-2,
+    .spark-row-3 { grid-template-columns: 1fr; }
+  }
+</style>

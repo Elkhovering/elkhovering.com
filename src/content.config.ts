@@ -11,11 +11,11 @@ import { glob } from 'astro/loaders';
 
 const works = defineCollection({
   loader: glob({
-    pattern: '**/*.md',
+    pattern: '**/*.{md,mdx}',
     base: './src/content/works',
     // ID должен включать префикс локали (en/banana-bank, ru/banana-bank),
     // иначе glob схлопывает файлы с одним именем из разных папок в один id.
-    generateId: ({ entry }) => entry.replace(/\.md$/, ''),
+    generateId: ({ entry }) => entry.replace(/\.(md|mdx)$/, ''),
   }),
   schema: z.object({
     slug: z.string(),                       // 'banana-bank' — ключ, совпадает с works.js
