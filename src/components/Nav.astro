@@ -1,0 +1,11 @@
+---
+// Навигация. Переживает View Transitions через transition:persist.
+// Единый URL на страницу — язык переключается клиентски через html[data-lang].
+---
+<nav transition:persist="site-nav">
+  <a data-cursor="open" href="/">Elkhovering.com</a>
+  <div class="nav-item">Currently design<br />Syrnik.dev</div>
+  <div class="nav-item">Based in Yerevan,<br />Republic of Armenia</div>
+  <a data-cursor="open" data-i18n="ui.works" href="/works">/works</a>
+  <a data-cursor="open" href="https://t.me/elkhovering">Contact me</a>
+</nav>

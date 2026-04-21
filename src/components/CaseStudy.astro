@@ -1,0 +1,145 @@
+---
+// Кейс-стади на едином URL.
+// UI-лейблы (Role, Year, Client, Stack, Tags, Visit, Next, ← Home) — через data-i18n.
+// Контент (title, summary, role value, client value, stack/tags списки, body-markdown)
+// приходит из разных .md-entries, поэтому оборачивается в [data-case-lang]:
+// CSS прячет неактивную локаль через html[data-lang].
+
+import { render, getCollection } from 'astro:content';
+import { worksOrderByYear } from '../data/works.js';
+
+interface Props {
+  entryEn: any;
+  entryRu: any;
+}
+
+const { entryEn, entryRu } = Astro.props;
+const { Content: ContentEn } = await render(entryEn);
+const { Content: ContentRu } = await render(entryRu);
+
+const slug = entryEn.data.slug;
+const cover = entryEn.data.cover;
+const year = entryEn.data.year;
+const url = entryEn.data.url || entryRu.data.url;
+const gallery = entryEn.data.gallery && entryEn.data.gallery.length
+  ? entryEn.data.gallery
+  : (entryRu.data.gallery || []);
+
+// Siblings для «next project» — только те slug, у которых есть обе локали.
+const all = await getCollection('works');
+const enBySlug = new Map(all.filter((e: any) => e.id.startsWith('en/')).map((e: any) => [e.data.slug, e]));
+const ruBySlug = new Map(all.filter((e: any) => e.id.startsWith('ru/')).map((e: any) => [e.data.slug, e]));
+
+const idx = worksOrderByYear.indexOf(slug);
+let nextSlug: string | null = null;
+if (idx !== -1) {
+  for (let step = 1; step < worksOrderByYear.length; step++) {
+    const s = worksOrderByYear[(idx + step) % worksOrderByYear.length];
+    if (enBySlug.get(s) && ruBySlug.get(s)) { nextSlug = s; break; }
+  }
+}
+const nextEn = nextSlug ? enBySlug.get(nextSlug) : null;
+const nextRu = nextSlug ? ruBySlug.get(nextSlug) : null;
+
+const hasStackEn = entryEn.data.stack && entryEn.data.stack.length > 0;
+const hasStackRu = entryRu.data.stack && entryRu.data.stack.length > 0;
+const hasTagsEn = entryEn.data.tags && entryEn.data.tags.length > 0;
+const hasTagsRu = entryRu.data.tags && entryRu.data.tags.length > 0;
+---
+<article class="case">
+  {/* Шапка: back/year одинаковы, title/summary — по локали */}
+  <header class="section case-header">
+    <a class="case-back" data-cursor="open" href="/" data-i18n="ui.back">← Home</a>
+    <div class="case-heading">
+      <h1 class="case-title" data-case-lang="en">{entryEn.data.title}</h1>
+      <h1 class="case-title" data-case-lang="ru">{entryRu.data.title}</h1>
+      <div class="case-year">{year}</div>
+    </div>
+    <p class="case-summary" data-case-lang="en">{entryEn.data.summary}</p>
+    <p class="case-summary" data-case-lang="ru">{entryRu.data.summary}</p>
+  </header>
+
+  {/* Обложка — общая */}
+  <div class="case-cover">
+    <img src={cover} alt={entryEn.data.title} style={`view-transition-name: work-${slug};`} />
+  </div>
+
+  {/* Мета: лейблы через data-i18n, значения — по локали */}
+  <section class="section case-meta">
+    <div class="case-meta-grid">
+      <div class="case-meta-cell">
+        <div class="case-meta-label" data-i18n="ui.role">Role</div>
+        <div class="case-meta-value" data-case-lang="en">{entryEn.data.role}</div>
+        <div class="case-meta-value" data-case-lang="ru">{entryRu.data.role}</div>
+      </div>
+      {(entryEn.data.client || entryRu.data.client) && (
+        <div class="case-meta-cell">
+          <div class="case-meta-label" data-i18n="ui.client">Client</div>
+          <div class="case-meta-value" data-case-lang="en">{entryEn.data.client}</div>
+          <div class="case-meta-value" data-case-lang="ru">{entryRu.data.client}</div>
+        </div>
+      )}
+      <div class="case-meta-cell">
+        <div class="case-meta-label" data-i18n="ui.year">Year</div>
+        <div class="case-meta-value">{year}</div>
+      </div>
+      {(hasStackEn || hasStackRu) && (
+        <div class="case-meta-cell">
+          <div class="case-meta-label" data-i18n="ui.stack">Stack</div>
+          {hasStackEn && <div class="case-meta-value" data-case-lang="en">{entryEn.data.stack.join(', ')}</div>}
+          {hasStackRu && <div class="case-meta-value" data-case-lang="ru">{entryRu.data.stack.join(', ')}</div>}
+        </div>
+      )}
+    </div>
+
+    {(hasTagsEn || hasTagsRu) && (
+      <div class="case-tags-row">
+        <div class="case-meta-label" data-i18n="ui.tags">Skills</div>
+        {hasTagsEn && (
+          <div class="case-tags" data-case-lang="en">
+            {entryEn.data.tags.map((tag: string) => <span class="case-tag">{tag}</span>)}
+          </div>
+        )}
+        {hasTagsRu && (
+          <div class="case-tags" data-case-lang="ru">
+            {entryRu.data.tags.map((tag: string) => <span class="case-tag">{tag}</span>)}
+          </div>
+        )}
+      </div>
+    )}
+
+    {url && (
+      <a class="case-visit" data-cursor="open" href={url} target="_blank" rel="noopener" data-i18n="ui.visit">
+        Visit live site ↗
+      </a>
+    )}
+  </section>
+
+  {/* Тело — markdown из content collection, по локали */}
+  <section class="section case-body">
+    <div class="case-body-inner" data-case-lang="en">
+      <ContentEn />
+    </div>
+    <div class="case-body-inner" data-case-lang="ru">
+      <ContentRu />
+    </div>
+  </section>
+
+  {/* Галерея — общая */}
+  {gallery.length > 0 && (
+    <section class="section case-gallery">
+      {gallery.map((src: string) => <img src={src} alt={entryEn.data.title} />)}
+    </section>
+  )}
+
+  {/* Next project: лейбл через data-i18n, title — по локали */}
+  {nextEn && nextRu && (
+    <nav class="section case-next">
+      <a class="case-next-link" data-cursor="see-more" href={`/works/${nextSlug}`}>
+        <div class="case-next-label" data-i18n="ui.next">Next project</div>
+        <div class="case-next-title" data-case-lang="en">{nextEn.data.title}</div>
+        <div class="case-next-title" data-case-lang="ru">{nextRu.data.title}</div>
+      </a>
+    </nav>
+  )}
+</article>

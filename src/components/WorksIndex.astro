@@ -1,0 +1,52 @@
+---
+// Editorial list. Один URL на страницу; язык переключается через html[data-lang].
+// UI-строки (back, title, role-label) — через data-i18n.
+// Контент карточки (title/summary/role) приходит из разных .md-файлов,
+// поэтому дублируется в двух [data-case-lang] блоках.
+
+import { getCollection } from 'astro:content';
+import { worksOrderByYear } from '../data/works.js';
+
+const all = await getCollection('works');
+const enBySlug = new Map(all.filter((e: any) => e.id.startsWith('en/') && !e.data.draft).map((e: any) => [e.data.slug, e]));
+const ruBySlug = new Map(all.filter((e: any) => e.id.startsWith('ru/') && !e.data.draft).map((e: any) => [e.data.slug, e]));
+
+const ordered = worksOrderByYear
+  .filter((s) => enBySlug.get(s) && ruBySlug.get(s))
+  .map((s) => ({ slug: s, en: enBySlug.get(s)!, ru: ruBySlug.get(s)! }));
+---
+<section class="section works-index">
+  <header class="works-index-top">
+    <a class="works-index-back" data-cursor="open" href="/" data-i18n="ui.back">← Home</a>
+    <div class="sec-title" data-i18n="ui.worksTitle">/works</div>
+    <p class="works-index-subtitle" data-i18n="ui.worksSubtitle">Selected work, 2018 — 2025</p>
+  </header>
+
+  <ul class="works-list">
+    {ordered.map(({ slug, en, ru }) => (
+      <li class="works-list-row">
+        <a class="works-list-link" data-cursor="see-more" href={`/works/${slug}`}>
+          <div class="works-list-cover">
+            <img
+              src={en.data.cover}
+              alt={en.data.title}
+              style={`view-transition-name: work-${slug};`}
+            />
+          </div>
+          <div class="works-list-meta">
+            <div class="works-list-year">{en.data.year}</div>
+
+            <div data-case-lang="en">
+              <h2 class="works-list-title">{en.data.title}</h2>
+              <p class="works-list-summary">{en.data.summary}</p>
+            </div>
+            <div data-case-lang="ru">
+              <h2 class="works-list-title">{ru.data.title}</h2>
+              <p class="works-list-summary">{ru.data.summary}</p>
+            </div>
+          </div>
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>

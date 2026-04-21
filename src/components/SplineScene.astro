@@ -1,0 +1,16 @@
+---
+// 3D-сцена. transition:persist сохраняет инстанс между страницами,
+// поэтому элька не перезагружается при переходе.
+---
+<div class="spline-wrapper" transition:persist="spline">
+  <spline-viewer
+    url="https://prod.spline.design/bF-xpjOSGy8Oq6PV/scene.splinecode"
+    id="splineCanvas"
+  ></spline-viewer>
+</div>
+
+<script
+  is:inline
+  type="module"
+  src="https://unpkg.com/@splinetool/viewer@1.9.94/build/spline-viewer.js"
+></script>

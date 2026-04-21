@@ -1,0 +1,93 @@
+{
+  "ui": {
+    "works": "/works",
+    "seeMore": "See more",
+    "open": "Open",
+    "copy": "Copy",
+    "copied": "✓ Copied",
+    "back": "← Home",
+    "role": "Role",
+    "year": "Year",
+    "client": "Client",
+    "stack": "Stack",
+    "tags": "Skills",
+    "visit": "Visit live site ↗",
+    "next": "Next project",
+    "worksTitle": "/works",
+    "worksSubtitle": "Selected work, 2018 — 2025"
+  },
+  "hero": {
+    "title": "One <br /> person",
+    "tagline": "The art director you hire before you need a team"
+  },
+  "about": {
+    "title": "/about",
+    "p1": "Since 2018 I work at the intersection of IT, product and digital — plugging into businesses at active growth, when digital infrastructure is needed but processes and team aren't yet in place.",
+    "p2": "Off-hours: economic strategy games, gardening, game design at Syrnik.dev. Same muscle — systems that compound slowly.",
+    "blend": "Art direction meets digital operations",
+    "desc1": "My core role — walk into unstructured processes of growing businesses and turn them into working systems. Fix product and technical logic, set up baseline architecture, put order between business, design, and engineering. 300+ projects since 2018, personally or under my management.",
+    "desc2": "The job isn't to do everything by hand. It's to leave behind a stable platform — a clear product, a baseline technical structure, and the operational order a full IT team can later stand on. One person, before the org chart exists."
+  },
+  "services": {
+    "title": "/I provide",
+    "s1": "Creative <br /> websites",
+    "s2": "Brand <br /> develop&shy;ment",
+    "s3": "nft & <br />crypto design",
+    "s4": "consulting <br />& audit",
+    "s5": "team <br />leading",
+    "s6": "educat&shy;ional <br />lectures"
+  },
+  "contacts": {
+    "title": "/Contacts",
+    "q1": "want to work <br /> together?",
+    "q2": "send me <br /> a message",
+    "or": "or"
+  },
+  "projects": {
+    "banana-bank": {
+      "title": "Banana Bank",
+      "desc": "Token launch landing built for virality",
+      "date": "2020"
+    },
+    "nuef": {
+      "title": "NUEF",
+      "desc": "Music label landing with cinematic transitions",
+      "date": "2021"
+    },
+    "chainproxy": {
+      "title": "ChainProxy",
+      "desc": "Proxy service — landing and full user platform",
+      "date": "2023"
+    },
+    "quicksms": {
+      "title": "QuickSMS",
+      "desc": "OTP number marketplace for SMS verification",
+      "date": "2022"
+    },
+    "xmrcrash": {
+      "title": "XMR Crash",
+      "desc": "Crash casino running on Monero",
+      "date": "2021"
+    },
+    "omikami": {
+      "title": "Omikami",
+      "desc": "3D token launch landing",
+      "date": "2025"
+    },
+    "syrnik": {
+      "title": "SYRNIK.DEV",
+      "desc": "Game development studio website",
+      "date": "2025"
+    },
+    "blackhole": {
+      "title": "Blackhole",
+      "desc": "Bitcoin wallet and roulette in a space setting",
+      "date": "2018"
+    },
+    "dotaboom": {
+      "title": "Dotaboom",
+      "desc": "BetBoom × The International 2022 — online battlepass",
+      "date": "2022"
+    }
+  }
+}

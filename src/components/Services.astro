@@ -1,0 +1,25 @@
+---
+const items = [
+  { n: '01', key: 'services.s1', fallback: 'Creative <br /> websites' },
+  { n: '02', key: 'services.s2', fallback: 'Brand <br /> develop&shy;ment' },
+  { n: '03', key: 'services.s3', fallback: 'nft & <br />crypto design' },
+  { n: '04', key: 'services.s4', fallback: 'consulting <br />& audit' },
+  { n: '05', key: 'services.s5', fallback: 'team <br />leading' },
+  { n: '06', key: 'services.s6', fallback: 'educat&shy;ional <br />lectures' },
+];
+---
+<section class="section sec4">
+  <div class="sec-title" data-i18n="services.title">/I provide</div>
+
+  {items.map((it) => (
+    <div class="service_unit">
+      <div class="top">
+        <div class="unit-counter">{it.n}</div>
+        <div class="unit-divider"></div>
+      </div>
+      <div class="bottom">
+        <h1 data-i18n={it.key} set:html={it.fallback}></h1>
+      </div>
+    </div>
+  ))}
+</section>

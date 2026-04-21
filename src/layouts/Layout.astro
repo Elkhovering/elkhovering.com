@@ -1,0 +1,64 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Nav from '../components/Nav.astro';
+import SplineScene from '../components/SplineScene.astro';
+import Cursor from '../components/Cursor.astro';
+import '../styles/global.css';
+import '../styles/mobile.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const {
+  title = 'Elkhovering — Evgenii Elkhov',
+  description = 'Creative direction and digital operations for businesses between small and scaling. One person — design, web, process — end to end.',
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+---
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="author" content="Evgenii Elkhov" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon-08.ico" type="image/x-icon" />
+    <link rel="icon" href="/favicon-08.svg" type="image/svg+xml" />
+    <title>{title}</title>
+    {/* Инлайновое правило — гарантированно прячет неактивный [data-case-lang]
+        блок даже если внешний CSS ещё не загрузился или закэширован. */}
+    <style is:inline>
+      html[data-lang="en"] [data-case-lang="ru"],
+      html[data-lang="ru"] [data-case-lang="en"] {
+        display: none !important;
+      }
+    </style>
+    {/* Инлайновый ранний скрипт — ставит html[data-lang] ДО первого paint,
+        чтобы не было мелькания EN на RU-устройствах. */}
+    <script is:inline>
+      (() => {
+        try {
+          const lang = localStorage.getItem('lang') || 'en';
+          document.documentElement.dataset.lang = lang;
+        } catch (e) {}
+      })();
+    </script>
+    <ClientRouter />
+  </head>
+  <body>
+    <Nav />
+    <SplineScene />
+
+    <slot />
+
+    <Cursor />
+
+    <script>
+      import '../scripts/client.js';
+    </script>
+  </body>
+</html>

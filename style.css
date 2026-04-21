@@ -228,76 +228,43 @@ nav a {
 
 /* 3rd screen | Works section */
 
-.sec3 {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: fit-content;
-  position: relative;
-  z-index: auto;
-  margin: 0;
-  pointer-events: none;
-  gap: 25vh 15vw;
+.works-title {
+  margin: 0 0 4rem 6.25rem;
 }
 
-.sec3 .unit {
-  height: fit-content;
-  min-height: 30vh;
-  position: relative;
+/*
+ * Works stack — два грида наложены друг на друга через CSS Grid.
+ * .works-stack НЕ создаёт stacking context (нет transform/opacity/etc),
+ * поэтому каждая .section внутри регистрируется в корневом контексте
+ * со своим z-index и корректно обтекает Spline (z: 50).
+ */
+.works-stack {
+  display: grid;
+}
+
+.works-stack > .section.works-grid {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-auto-rows: minmax(18vh, auto);
+  column-gap: 2vw;
+  row-gap: 10vh;
+  height: auto;
+  pointer-events: none;
+}
+
+.works-grid[data-layer="back"]  { z-index: 1;  }  /* за Spline (z: 50) */
+.works-grid[data-layer="front"] { z-index: 75; }  /* перед Spline      */
+
+.work {
+  grid-column: var(--col) / span 3;
+  grid-row: var(--row);
   pointer-events: auto;
-}
-
-#frontal-section {
-  margin-top: 0;
-  z-index: 75;
-
-  .unit:nth-child(1) {
-    padding-right: 25vw;
-  }
-  .unit:nth-child(3) {
-    min-height: 25rem;
-    padding-right: 18vw;
-  }
-  .unit:nth-child(5) {
-    padding-right: 22vw;
-  }
-  .unit:nth-child(6) {
-    padding-left: 27vw;
-  }
-  .unit:nth-child(9) {
-    padding-right: 28vw;
-  }
-  .unit:nth-child(11) {
-    padding-right: 30vw;
-  }
-}
-
-#back-section {
-  .unit:nth-child(2) {
-    padding-left: 30vw;
-  }
-  .unit:nth-child(4) {
-    padding-left: 23vw;
-  }
-  .unit:nth-child(7) {
-    padding-right: 35vw;
-  }
-  .unit:nth-child(8) {
-    padding-left: 22vw;
-  }
-  .unit:nth-child(10) {
-    padding-left: 27vw;
-  }
-
-  .unit:nth-child(12) {
-    padding-left: 27vw;
-  }
-}
-
-.sec3 .empty {
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
 .work-image {

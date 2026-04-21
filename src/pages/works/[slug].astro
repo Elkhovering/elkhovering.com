@@ -1,0 +1,30 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import CaseStudy from '../../components/CaseStudy.astro';
+
+export async function getStaticPaths() {
+  // Канон slug-ов — EN-коллекция. RU-файл обязателен (иначе build-time ошибка ниже).
+  const enEntries = await getCollection('works', ({ id, data }: any) =>
+    id.startsWith('en/') && !data.draft,
+  );
+  return enEntries.map((entry: any) => ({
+    params: { slug: entry.data.slug },
+    props: { slug: entry.data.slug },
+  }));
+}
+
+const { slug } = Astro.props;
+const entryEn = await getEntry('works', `en/${slug}`);
+const entryRu = await getEntry('works', `ru/${slug}`);
+
+if (!entryEn || !entryRu) {
+  throw new Error(`Missing locale entry for slug "${slug}" (en: ${!!entryEn}, ru: ${!!entryRu})`);
+}
+---
+<Layout
+  title={`${entryEn.data.title} — Elkhovering`}
+  description={entryEn.data.summary}
+>
+  <CaseStudy entryEn={entryEn} entryRu={entryRu} />
+</Layout>

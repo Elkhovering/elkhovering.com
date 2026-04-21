@@ -122,23 +122,6 @@ document.querySelectorAll(".work-image").forEach((img) => {
   });
 });
 
-// Совмещение фронтальных и фоновых работ
-
-function updateFrontalMargin() {
-  const sec3 = document.querySelector(".sec3");
-  const frontal = document.getElementById("frontal-section");
-
-  if (sec3 && frontal) {
-    const height = sec3.offsetHeight;
-    frontal.style.marginTop = `-${height}px`;
-  }
-}
-
-// вызвать при загрузке
-window.addEventListener("load", updateFrontalMargin);
-// и при ресайзе, если контент может меняться
-window.addEventListener("resize", updateFrontalMargin);
-
 /* Скролл */
 
 // Lenis Smooth Scroll

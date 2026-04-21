@@ -1,0 +1,17 @@
+---
+// Кастомный курсор + overlay с информацией о наведённой работе
+// + hover-background. Всё это глобально, переживает навигацию.
+---
+<div class="hover-background" transition:persist="hover-bg"></div>
+
+<div class="overlay-container" transition:persist="overlay">
+  <div class="project-overlay" id="projectOverlay">
+    <span class="project-text">
+      <strong id="projectTitle"></strong>
+      <span id="projectDesc"></span>
+      <span id="projectDate"></span>
+    </span>
+  </div>
+</div>
+
+<div class="custom-cursor" id="customCursor" transition:persist="cursor">See more</div>

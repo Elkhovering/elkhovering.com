@@ -1,0 +1,49 @@
+---
+import { works } from '../data/works.js';
+
+const backWorks = works.filter((w) => w.layer === 'back');
+const frontWorks = works.filter((w) => w.layer === 'front');
+---
+<div class="sec-title works-title" data-i18n="ui.works">/works</div>
+
+<div class="works-stack">
+  <section class="section works-grid" data-layer="back">
+    {backWorks.map((w) => (
+      <a
+        class="work rellax"
+        href={`/works/${w.id}`}
+        data-rellax-speed={w.rellaxSpeed}
+        style={`--col: ${w.col}; --row: ${w.row};`}
+      >
+        <img
+          class="work-image"
+          data-cursor="see-more"
+          data-id={w.id}
+          src={w.image}
+          alt={w.id}
+          style={`view-transition-name: work-${w.id};`}
+        />
+      </a>
+    ))}
+  </section>
+
+  <section class="section works-grid" data-layer="front">
+    {frontWorks.map((w) => (
+      <a
+        class="work rellax"
+        href={`/works/${w.id}`}
+        data-rellax-speed={w.rellaxSpeed}
+        style={`--col: ${w.col}; --row: ${w.row};`}
+      >
+        <img
+          class="work-image"
+          data-cursor="see-more"
+          data-id={w.id}
+          src={w.image}
+          alt={w.id}
+          style={`view-transition-name: work-${w.id};`}
+        />
+      </a>
+    ))}
+  </section>
+</div>
