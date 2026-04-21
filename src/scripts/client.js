@@ -50,6 +50,10 @@ let lenisInstance = null;
 function persistentInit() {
   if (lenisInstance) return;
 
+  // Ручное управление scroll restoration — ClientRouter сам помнит позиции
+  // через history.state. Дефолтное browser-restore конфликтует с Lenis.
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
   // Lenis Smooth Scroll
   lenisInstance = new Lenis({
     duration: 4.4,
@@ -227,10 +231,27 @@ function pageInit() {
 
 // ──────────────── Жизненный цикл Astro View Transitions ────────────────
 
+// Останавливаем Lenis ДО навигации. Иначе momentum-скролл конфликтует
+// с View Transition: URL не обновляется через pushState, а обратная кнопка
+// ведёт «через голову» (на предыдущий URL минус один).
+document.addEventListener('astro:before-preparation', () => {
+  lenisInstance?.stop();
+});
+
 // КРИТИЧНО: выставляем data-lang на новый документ ДО того, как он попадёт в DOM.
 // Иначе жёсткий <html data-lang="en"> из Layout на долю секунды покажет EN-блок.
 document.addEventListener('astro:before-swap', (e) => {
   e.newDocument.documentElement.dataset.lang = currentLang;
+});
+
+// После свапа — скроллим Lenis в начало новой страницы (без анимации) и
+// снова запускаем. window.scrollTo(0,0) в этот момент уже отработал ClientRouter,
+// но внутренний target Lenis надо синхронизировать.
+document.addEventListener('astro:after-swap', () => {
+  if (lenisInstance) {
+    lenisInstance.scrollTo(0, { immediate: true, force: true });
+    lenisInstance.start();
+  }
 });
 
 // Первая загрузка и любая навигация через ClientRouter
