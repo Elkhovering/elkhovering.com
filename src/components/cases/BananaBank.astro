@@ -7,6 +7,7 @@
 import { getCollection } from 'astro:content';
 import { worksOrderByYear } from '../../data/works.js';
 import CaseOutro from '../CaseOutro.astro';
+import CaseTopNav from '../CaseTopNav.astro';
 
 interface Props {
   entryEn: any;
@@ -36,6 +37,16 @@ const nextEn = nextSlug ? enBySlug.get(nextSlug) : null;
 const nextRu = nextSlug ? ruBySlug.get(nextSlug) : null;
 ---
 <article class="bb">
+  {/* Top-nav над заголовком кейса: быстрый выход в /works и к следующему проекту.
+      Кнопка «Home» удалена — её роль несёт логотип elkhovering.com в шапке сайта. */}
+  <div class="bb-topnav-wrap">
+    <CaseTopNav
+      nextSlug={nextSlug}
+      nextTitleEn={nextEn?.data?.title ?? null}
+      nextTitleRu={nextRu?.data?.title ?? null}
+    />
+  </div>
+
   {/* ──────────────── HERO ──────────────── */}
   <section class="bb-hero">
     <div class="bb-hero-grid">
@@ -76,10 +87,6 @@ const nextRu = nextSlug ? ruBySlug.get(nextSlug) : null;
       <img class="bb-layer bb-particles" src={`${S}/particles.png`} alt="" />
     </div>
 
-    <a class="bb-back" data-cursor="open" href="/works">
-      <span data-case-lang="en">← Works</span>
-      <span data-case-lang="ru">← Работы</span>
-    </a>
   </section>
 
   {/* ──────────────── BRIEF ──────────────── */}
@@ -467,21 +474,15 @@ const nextRu = nextSlug ? ruBySlug.get(nextSlug) : null;
     opacity: 0.2;
   }
 
-  .bb-back {
-    position: absolute;
-    top: 2rem;
-    left: 6.25rem;
-    z-index: 10;
-    font-family: medium;
-    font-size: 13px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text);
-    text-decoration: none;
-    opacity: 0.6;
-    transition: opacity 0.2s;
+  /* Обёртка top-nav над hero: живёт на кремовом фоне как и остальной сайт. */
+  .bb-topnav-wrap {
+    position: relative;
+    z-index: 100;
+    padding: 7rem 6.25rem 0;
+    background: var(--base);
   }
-  .bb-back:hover { opacity: 1; }
+  @media (max-width: 1024px) { .bb-topnav-wrap { padding: 6rem 2.5rem 0; } }
+  @media (max-width: 720px)  { .bb-topnav-wrap { padding: 5rem 1.25rem 0; } }
 
   /* ─────────── BRIEF ─────────── */
   .bb-brief {

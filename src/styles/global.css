@@ -573,16 +573,6 @@ html[data-lang="ru"] [data-case-lang="en"] {
   align-items: stretch;
 }
 
-.case-back {
-  font-family: medium;
-  font-size: 18px;
-  color: var(--text);
-  text-decoration: none;
-  letter-spacing: 0.02em;
-  align-self: flex-start;
-}
-.case-back:hover { text-decoration: underline; }
-
 .case-heading {
   display: flex;
   align-items: flex-end;

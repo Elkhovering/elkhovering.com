@@ -117,12 +117,18 @@
   h1 { font-size: 3.25rem; }
 
   /* Spline. Реальный viewport-высот на телефоне — используем dvh, чтобы не
-     было пустых 100px под адресной строкой iOS Safari. */
+     было пустых 100px под адресной строкой iOS Safari. Лось центруется
+     по вертикали через flex на wrapper'е (а не прилипает к верху через sticky). */
   .spline-wrapper {
     height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   spline-viewer {
+    position: relative;    /* override sticky, чтобы flex-центрирование работало */
     height: 55%;
+    top: auto;
   }
 
   /* Hero */

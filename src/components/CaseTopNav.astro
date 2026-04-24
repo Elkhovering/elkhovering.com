@@ -1,0 +1,99 @@
+---
+// Компактная навигация по работам над заголовком кейса.
+// Слева — возврат к списку /works, справа — переход к следующему проекту.
+// Это быстрый «выход» для пользователя, который не хочет читать кейс целиком.
+// Полная версия той же навигации дублируется в CaseOutro внизу.
+//
+// Намеренно использую <div role="navigation">, а не <nav>, чтобы не наследовать
+// глобальные стили сайт-nav'а (fixed, mix-blend-mode: difference и т.п.).
+
+interface Props {
+  nextSlug?: string | null;
+  nextTitleEn?: string | null;
+  nextTitleRu?: string | null;
+}
+const { nextSlug = null, nextTitleEn = null, nextTitleRu = null } = Astro.props;
+---
+<div class="case-topnav" role="navigation" aria-label="Works navigation">
+  <a class="case-topnav-back" data-cursor="see-more" href="/works">
+    <span class="case-topnav-arrow" aria-hidden="true">←</span>
+    <span class="case-topnav-label" data-i18n="ui.outroAllWorks">All works</span>
+  </a>
+
+  {nextSlug && (
+    <a class="case-topnav-next" data-cursor="see-more" href={`/works/${nextSlug}`}>
+      <span class="case-topnav-next-meta" data-i18n="ui.outroNext">Next project</span>
+      <span class="case-topnav-sep" aria-hidden="true">·</span>
+      <span class="case-topnav-next-title" data-case-lang="en">{nextTitleEn}</span>
+      <span class="case-topnav-next-title" data-case-lang="ru">{nextTitleRu}</span>
+      <span class="case-topnav-arrow" aria-hidden="true">→</span>
+    </a>
+  )}
+</div>
+
+<style>
+  .case-topnav {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1.5rem;
+    padding: 0 0 1.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    font-family: medium;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+    --topnav-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .case-topnav a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5em;
+    text-decoration: none;
+    color: var(--text);
+    transition: gap 0.5s var(--topnav-ease), opacity 0.2s ease;
+    opacity: 0.7;
+  }
+  .case-topnav a:hover {
+    text-decoration: none;
+    opacity: 1;
+  }
+
+  .case-topnav-back:hover { gap: 0.9em; }
+  .case-topnav-back:hover .case-topnav-arrow { transform: translateX(-0.25em); }
+
+  .case-topnav-next:hover { gap: 0.9em; }
+  .case-topnav-next:hover .case-topnav-arrow { transform: translateX(0.25em); }
+
+  .case-topnav-arrow {
+    display: inline-block;
+    transition: transform 0.5s var(--topnav-ease);
+  }
+
+  .case-topnav-next-meta { opacity: 0.55; }
+  .case-topnav-sep { opacity: 0.35; padding: 0 0.1em; }
+  .case-topnav-next-title {
+    letter-spacing: 0.08em;
+  }
+
+  @media (max-width: 720px) {
+    .case-topnav {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      gap: 1rem;
+      padding-bottom: 1rem;
+    }
+    /* На узких экранах скрываем лейбл «Next project» — оставляем только название */
+    .case-topnav-next-meta,
+    .case-topnav-sep {
+      display: none;
+    }
+  }
+
+  @media (max-width: 420px) {
+    /* На совсем узких скрываем и название следующего — оставляем стрелку */
+    .case-topnav-next-title { display: none; }
+  }
+</style>

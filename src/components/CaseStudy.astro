@@ -8,6 +8,7 @@
 import { render, getCollection } from 'astro:content';
 import { worksOrderByYear } from '../data/works.js';
 import CaseOutro from './CaseOutro.astro';
+import CaseTopNav from './CaseTopNav.astro';
 
 interface Props {
   entryEn: any;
@@ -48,9 +49,14 @@ const hasTagsEn = entryEn.data.tags && entryEn.data.tags.length > 0;
 const hasTagsRu = entryRu.data.tags && entryRu.data.tags.length > 0;
 ---
 <article class="case">
-  {/* Шапка: back/year одинаковы, title/summary — по локали */}
+  {/* Шапка: top-nav → title/year → summary. Кнопка «Home» удалена —
+      её функцию несёт логотип elkhovering.com в шапке сайта. */}
   <header class="section case-header">
-    <a class="case-back" data-cursor="open" href="/" data-i18n="ui.back">← Home</a>
+    <CaseTopNav
+      nextSlug={nextSlug}
+      nextTitleEn={nextEn?.data?.title ?? null}
+      nextTitleRu={nextRu?.data?.title ?? null}
+    />
     <div class="case-heading">
       <h1 class="case-title" data-case-lang="en">{entryEn.data.title}</h1>
       <h1 class="case-title" data-case-lang="ru">{entryRu.data.title}</h1>
