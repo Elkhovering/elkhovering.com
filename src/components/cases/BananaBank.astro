@@ -1,0 +1,926 @@
+---
+// Bespoke case study for /works/banana-bank.
+// Автономная страница: темная violet-палитра, parallax на скролле,
+// pinned-секции, cursor-follow на hero-катане, огромная типографика overflow.
+// Текст EN/RU живёт в компоненте, переключается через html[data-lang] + [data-case-lang].
+
+import { getCollection } from 'astro:content';
+import { worksOrderByYear } from '../../data/works.js';
+import CaseOutro from '../CaseOutro.astro';
+
+interface Props {
+  entryEn: any;
+  entryRu: any;
+}
+const { entryEn, entryRu } = Astro.props;
+
+const S = '/media/projects/banana-bank/sparks';
+const year = entryEn.data.year;
+const url = entryEn.data.url;
+
+// Next-project: пробегаем worksOrderByYear от текущего slug по кругу,
+// берём первый, у которого есть обе локали.
+const slug = entryEn.data.slug;
+const all = await getCollection('works');
+const enBySlug = new Map(all.filter((e: any) => e.id.startsWith('en/')).map((e: any) => [e.data.slug, e]));
+const ruBySlug = new Map(all.filter((e: any) => e.id.startsWith('ru/')).map((e: any) => [e.data.slug, e]));
+const idx = worksOrderByYear.indexOf(slug);
+let nextSlug: string | null = null;
+if (idx !== -1) {
+  for (let step = 1; step < worksOrderByYear.length; step++) {
+    const s = worksOrderByYear[(idx + step) % worksOrderByYear.length];
+    if (enBySlug.get(s) && ruBySlug.get(s)) { nextSlug = s; break; }
+  }
+}
+const nextEn = nextSlug ? enBySlug.get(nextSlug) : null;
+const nextRu = nextSlug ? ruBySlug.get(nextSlug) : null;
+---
+<article class="bb">
+  {/* ──────────────── HERO ──────────────── */}
+  <section class="bb-hero">
+    <div class="bb-hero-grid">
+      <div class="bb-hero-meta">
+        <span class="bb-kicker">Case 01 · {year}</span>
+        <span class="bb-kicker-right" data-case-lang="en">Landing · Token launch · Casino</span>
+        <span class="bb-kicker-right" data-case-lang="ru">Лендинг · Запуск токена · Казино</span>
+      </div>
+
+      <h1 class="bb-title">
+        <span class="bb-title-line" data-reveal>BANANA</span>
+        <span class="bb-title-line bb-title-line-offset" data-reveal data-reveal-delay="80">BANK</span>
+      </h1>
+
+      <div class="bb-hero-foot">
+        <p class="bb-hero-lede" data-case-lang="en" data-reveal data-reveal-delay="180">
+          A landing forged in two weeks for a token that wanted to become a myth.
+        </p>
+        <p class="bb-hero-lede" data-case-lang="ru" data-reveal data-reveal-delay="180">
+          Лендинг, выкованный за две недели для токена, который хотел стать мифом.
+        </p>
+        <a class="bb-hero-cta" data-cursor="open" href={url} target="_blank" rel="noopener" data-reveal data-reveal-delay="260">
+          <span data-case-lang="en">Visit live</span>
+          <span data-case-lang="ru">На сайт</span>
+          <span class="bb-arrow">↗</span>
+        </a>
+      </div>
+    </div>
+
+    {/* Слои hero-сцены — параллакс + cursor-follow */}
+    <div class="bb-hero-stage" aria-hidden="true">
+      <img class="bb-layer" data-parallax="-60" src={`${S}/leaves-left-top.png`} alt="" />
+      <img class="bb-layer" data-parallax="-40" src={`${S}/leaves-right.png`} alt="" />
+      <img class="bb-layer bb-hero-katana" data-parallax="-110" data-cursor-follow="28" src={`${S}/blade.png`} alt="" />
+      <img class="bb-layer bb-hero-katana bb-hero-katana-left" data-parallax="-90" data-cursor-follow="18" src={`${S}/left.png`} alt="" />
+      <img class="bb-layer bb-hero-katana bb-hero-katana-right" data-parallax="-90" data-cursor-follow="18" src={`${S}/right.png`} alt="" />
+      <img class="bb-layer" data-parallax="-20" src={`${S}/leaves-left-bot.png`} alt="" />
+      <img class="bb-layer bb-particles" src={`${S}/particles.png`} alt="" />
+    </div>
+
+    <a class="bb-back" data-cursor="open" href="/works">
+      <span data-case-lang="en">← Works</span>
+      <span data-case-lang="ru">← Работы</span>
+    </a>
+  </section>
+
+  {/* ──────────────── BRIEF ──────────────── */}
+  <section class="bb-section bb-brief">
+    <div class="bb-brief-left">
+      <span class="bb-eyebrow" data-reveal>
+        <span data-case-lang="en">The brief</span>
+        <span data-case-lang="ru">Бриф</span>
+      </span>
+    </div>
+    <div class="bb-brief-right">
+      <blockquote class="bb-quote" data-case-lang="en" data-reveal data-reveal-delay="80">
+        «We need visuals that hit. Not like everyone else&rsquo;s.»
+      </blockquote>
+      <blockquote class="bb-quote" data-case-lang="ru" data-reveal data-reveal-delay="80">
+        «Нужен визуал, который необычный, цепляющий, не как у всех».
+      </blockquote>
+
+      <div class="bb-body" data-case-lang="en" data-reveal data-reveal-delay="160">
+        <p>Word-of-mouth intro. By 2020 I was already moving through the crypto community, mostly as a designer. The landing had two jobs — pull attention onto the token so it could build economic mass, and pre-announce a casino running on it. No brief, full trust, a blank canvas.</p>
+      </div>
+      <div class="bb-body" data-case-lang="ru" data-reveal data-reveal-delay="160">
+        <p>Пришёл по сарафанному радио. К 2020-му я уже плотно варился в криптосообществе, в основном как дизайнер. У лендинга было две задачи — привлечь внимание к токену, чтобы набрать экономическую массу, и заанонсировать казино на этом же токене. Без брифа, на полном доверии, с чистого листа.</p>
+      </div>
+    </div>
+  </section>
+
+  {/* ──────────────── KATANA PINNED ──────────────── */}
+  <section class="bb-section bb-katana" data-katana-section>
+    <div class="bb-katana-text" data-katana-text>
+      <span class="bb-eyebrow">
+        <span data-case-lang="en">Hero opener</span>
+        <span data-case-lang="ru">Опенер</span>
+      </span>
+      <h2 class="bb-h2">
+        <span data-case-lang="en">The banana-katana carved a path into the acidic jungle.</span>
+        <span data-case-lang="ru">Банан-катана прорубил путь в кислотные джунгли.</span>
+      </h2>
+      <div class="bb-body" data-case-lang="en">
+        <p>Nothing like it on stock libraries. Three hand-drawn layers: the blade and two peel halves, composed so the object could open like a weapon on scroll-in. No sacred meaning. Pure impact — a visual gate between the real world and the violet jungle below.</p>
+      </div>
+      <div class="bb-body" data-case-lang="ru">
+        <p>Такого на стоках нет. Три вручную отрисованных слоя: клинок и две половины кожуры, скомпонованные так, чтобы банан раскрывался как оружие при появлении на скролле. Сакрального смысла здесь нет. Чистая эффектность — визуальные ворота между реальным миром и фиолетовыми джунглями внизу.</p>
+      </div>
+    </div>
+
+    <div class="bb-katana-stage" data-katana-stage>
+      <img class="bb-katana-piece bb-katana-blade" src={`${S}/blade.png`} alt="" />
+      <img class="bb-katana-piece bb-katana-left" src={`${S}/left.png`} alt="" />
+      <img class="bb-katana-piece bb-katana-right" src={`${S}/right.png`} alt="" />
+      <div class="bb-katana-labels">
+        <span class="bb-katana-label bb-katana-label-blade">01 · Blade</span>
+        <span class="bb-katana-label bb-katana-label-left">02 · Left peel</span>
+        <span class="bb-katana-label bb-katana-label-right">03 · Right peel</span>
+      </div>
+    </div>
+  </section>
+
+  {/* ──────────────── BESTIARY ──────────────── */}
+  <section class="bb-section bb-bestiary">
+    <h2 class="bb-huge" data-case-lang="en" data-reveal>BESTIARY</h2>
+    <h2 class="bb-huge" data-case-lang="ru" data-reveal>ЗВЕРИНЕЦ</h2>
+
+    <div class="bb-bestiary-stage">
+      <figure class="bb-beast bb-beast-bear">
+        <img data-parallax="-50" src={`${S}/bear.png`} alt="Bear" />
+        <figcaption data-case-lang="en">Bear — the bear market as a character.</figcaption>
+        <figcaption data-case-lang="ru">Медведь — медвежий рынок как персонаж.</figcaption>
+      </figure>
+      <figure class="bb-beast bb-beast-ox">
+        <img data-parallax="-80" src={`${S}/ox.png`} alt="Ox" />
+        <figcaption data-case-lang="en">Ox — the bull market, same theatrical treatment.</figcaption>
+        <figcaption data-case-lang="ru">Бык — бычий рынок, та же театральная подача.</figcaption>
+      </figure>
+      <figure class="bb-beast bb-beast-monkey">
+        <img data-parallax="-110" src={`${S}/monkey-flag.png`} alt="Monkey with flag" />
+        <figcaption data-case-lang="en">Monkey with the flag — the mascot, closing the loop between the animal cast and the fruit.</figcaption>
+        <figcaption data-case-lang="ru">Обезьяна с флагом — маскот, замыкающий петлю между звериным составом и фруктом.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  {/* ──────────────── PROCESS ──────────────── */}
+  <section class="bb-section bb-process">
+    <div class="bb-process-grid">
+      <div class="bb-process-cell" data-reveal>
+        <div class="bb-process-num">01</div>
+        <div class="bb-process-text" data-case-lang="en">
+          <strong>Gather.</strong> Pull everything alive in the overlap of bananas and crypto. Memes, tropes, mascots, ticker culture.
+        </div>
+        <div class="bb-process-text" data-case-lang="ru">
+          <strong>Сбор.</strong> Собрать всё живое на стыке бананов и крипты. Мемы, архетипы, маскотов, культуру тикеров.
+        </div>
+      </div>
+      <div class="bb-process-cell" data-reveal data-reveal-delay="80">
+        <div class="bb-process-num">02</div>
+        <div class="bb-process-text" data-case-lang="en">
+          <strong>AIDA.</strong> Lock the skeleton: attention → interest → desire → action. All content, animations, transitions planned off that spine.
+        </div>
+        <div class="bb-process-text" data-case-lang="ru">
+          <strong>AIDA.</strong> Зафиксировать скелет: attention → interest → desire → action. Весь контент, анимации, переходы — от этого позвоночника.
+        </div>
+      </div>
+      <div class="bb-process-cell" data-reveal data-reveal-delay="160">
+        <div class="bb-process-num">03</div>
+        <div class="bb-process-text" data-case-lang="en">
+          <strong>Draw by hand.</strong> Nothing off-the-shelf. The banana, the labels, the debris — assembled piece by piece so the page reads as one handmade object.
+        </div>
+        <div class="bb-process-text" data-case-lang="ru">
+          <strong>Ручная отрисовка.</strong> Ничего со стока. Банан, подписи, обломки — собирались по частям, чтобы страница читалась как один рукотворный объект.
+        </div>
+      </div>
+      <div class="bb-process-cell" data-reveal data-reveal-delay="240">
+        <div class="bb-process-num">04</div>
+        <div class="bb-process-text" data-case-lang="en">
+          <strong>Layer the depth.</strong> Everything parallaxes. Leaves at the front, beasts mid, backdrop slow. The jungle stops being decoration and starts being a place.
+        </div>
+        <div class="bb-process-text" data-case-lang="ru">
+          <strong>Слоить глубину.</strong> Всё движется с параллаксом. Листья спереди, звери в середине, фон медленный. Джунгли перестают быть декорацией и становятся местом.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ──────────────── DEPTH — game pieces ──────────────── */}
+  <section class="bb-section bb-depth">
+    <div class="bb-depth-text">
+      <span class="bb-eyebrow">
+        <span data-case-lang="en">Depth</span>
+        <span data-case-lang="ru">Глубина</span>
+      </span>
+      <h2 class="bb-h2">
+        <span data-case-lang="en">Three planes. One jungle.</span>
+        <span data-case-lang="ru">Три плана. Одни джунгли.</span>
+      </h2>
+      <p class="bb-body-text" data-case-lang="en">
+        Chips and dice broken into three parallax layers. On scroll they drift at different rates — the scene gains real volume.
+      </p>
+      <p class="bb-body-text" data-case-lang="ru">
+        Фишки и кубики разбиты на три параллакс-слоя. На скролле они двигаются с разной скоростью — сцена получает настоящий объём.
+      </p>
+    </div>
+
+    <div class="bb-depth-stage">
+      <img class="bb-depth-layer bb-depth-back" data-parallax="-30" src={`${S}/back.png`} alt="" />
+      <img class="bb-depth-layer bb-depth-mid" data-parallax="-80" src={`${S}/mid.png`} alt="" />
+      <img class="bb-depth-layer bb-depth-front" data-parallax="-160" src={`${S}/front.png`} alt="" />
+    </div>
+  </section>
+
+  {/* ──────────────── OUTCOME ──────────────── */}
+  <section class="bb-section bb-outcome">
+    <blockquote class="bb-pull" data-case-lang="en" data-reveal>
+      “You can really go into space with visuals.”
+    </blockquote>
+    <blockquote class="bb-pull" data-case-lang="ru" data-reveal>
+      «Ты правда умеешь уходить в космос по визуалу».
+    </blockquote>
+    <cite class="bb-cite" data-case-lang="en" data-reveal data-reveal-delay="80">— the client, before shipping</cite>
+    <cite class="bb-cite" data-case-lang="ru" data-reveal data-reveal-delay="80">— клиент, перед запуском</cite>
+
+    <div class="bb-outcome-body" data-case-lang="en" data-reveal data-reveal-delay="160">
+      <p>Accepted on the first pass. No revisions. After launch, token holders pushed the landing themselves — it became part of how the community talked about the project. Four years later, it aged well.</p>
+    </div>
+    <div class="bb-outcome-body" data-case-lang="ru" data-reveal data-reveal-delay="160">
+      <p>Принят с первого раза. Без правок. После запуска держатели токена сами активно форсили лендинг — он стал частью того, как комьюнити говорило о проекте. Четыре года спустя он хорошо сохранился.</p>
+    </div>
+
+    <a class="bb-outcome-cta" data-cursor="open" href={url} target="_blank" rel="noopener" data-reveal data-reveal-delay="240">
+      <span data-case-lang="en">Open the live site</span>
+      <span data-case-lang="ru">Открыть сайт</span>
+      <span class="bb-arrow">↗</span>
+    </a>
+  </section>
+</article>
+
+{/* Общий site-level outro: CTA на контакт + back to /works + next project. */}
+<CaseOutro
+  nextSlug={nextSlug}
+  nextTitleEn={nextEn?.data?.title ?? null}
+  nextTitleRu={nextRu?.data?.title ?? null}
+/>
+
+<style>
+  /* ─────────── Палитра и типографика ───────────
+     Кейс наследует концепт сайта:
+       - фон = site base (тёплый off-white)
+       - текст = чёрный, Helvetica (roman/medium/bold)
+       - все проектные ассеты прогоняются через единый редакционный фильтр:
+         grayscale + multiply, чтобы читаться как печатная иллюстрация на бумаге.
+     Сольный цвет кейса (--bb-accent) — spot, используется только в kicker'ах,
+     подчёркиваниях CTA и hover-акцентах. На следующих кейсах он просто меняется. */
+  .bb {
+    --bb-accent: #6a2bff;          /* spot-цвет banana-bank */
+    --bb-line:   rgba(0, 0, 0, 0.15);
+    --bb-muted:  rgba(0, 0, 0, 0.55);
+
+    /* Единый «редакционный» фильтр для всех проектных картинок.
+       grayscale = уводим в бумагу, contrast = возвращаем глубину,
+       multiply (на img через mix-blend-mode) = вжимаем ink в paper. */
+    --bb-ink: grayscale(1) contrast(1.18) brightness(0.96);
+
+    position: relative;
+    z-index: 100;
+    background: var(--base);
+    color: var(--text);
+    overflow-x: clip;
+  }
+  .bb a { color: inherit; }
+
+  /* Любая картинка внутри кейса по умолчанию читается как editorial ink.
+     Для исключений (цветной дашборд, финальный скриншот) — класс .bb-raw. */
+  .bb img:not(.bb-raw) {
+    filter: var(--bb-ink);
+    mix-blend-mode: multiply;
+  }
+
+  .bb-section {
+    position: relative;
+    padding: 8rem 6.25rem;
+    display: block;
+    height: auto;
+    min-height: 0;
+    width: 100%;
+    margin-bottom: 0;
+    will-change: auto;
+    border-top: 1px solid var(--bb-line);
+  }
+  .bb-section:first-child { border-top: 0; }
+
+  .bb-eyebrow {
+    display: inline-block;
+    font-family: medium;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--bb-accent);
+  }
+
+  .bb-h2 {
+    font-family: medium;
+    font-size: clamp(36px, 4.5vw, 72px);
+    line-height: 1.02;
+    margin: 1.25rem 0 1.5rem;
+    text-transform: uppercase;
+    max-width: 18ch;
+    color: var(--text);
+  }
+
+  .bb-body,
+  .bb-body-text {
+    font-family: roman;
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--text);
+    max-width: 54ch;
+  }
+  .bb-body p { margin: 0 0 1rem; }
+
+  /* ─────────── HERO ─────────── */
+  .bb-hero {
+    position: relative;
+    height: 100vh;
+    min-height: 640px;
+    overflow: hidden;
+    border-top: 0;
+    background: var(--base);
+  }
+  .bb-hero-grid {
+    position: relative;
+    z-index: 5;
+    height: 100%;
+    padding: 7rem 6.25rem 4rem;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 0;
+  }
+  .bb-hero-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: medium;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--bb-muted);
+  }
+  .bb-kicker { color: var(--bb-accent); }
+
+  .bb-title {
+    font-family: medium;
+    font-size: clamp(80px, 18vw, 280px);
+    line-height: 0.85;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    align-self: center;
+    color: var(--text);
+  }
+  .bb-title-line { display: block; }
+  .bb-title-line-offset { padding-left: 0.25em; }
+
+  .bb-hero-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 3rem;
+  }
+  .bb-hero-lede {
+    font-family: roman;
+    font-size: clamp(18px, 1.6vw, 22px);
+    line-height: 1.35;
+    max-width: 34ch;
+    margin: 0;
+    color: var(--text);
+  }
+  .bb-hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    font-family: medium;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text);
+    text-decoration: none;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--bb-accent);
+    transition: gap 0.3s ease, color 0.2s ease;
+  }
+  .bb-hero-cta:hover { gap: 1.2em; color: var(--bb-accent); }
+  .bb-hero-cta .bb-arrow { display: inline-block; transition: transform 0.3s ease; }
+  .bb-hero-cta:hover .bb-arrow { transform: translate(0.3em, -0.3em); }
+
+  .bb-hero-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .bb-hero-stage .bb-layer {
+    position: absolute;
+    will-change: transform;
+  }
+  .bb-hero-stage .bb-hero-katana {
+    top: 50%;
+    left: 50%;
+    width: 80vw;
+    max-width: 1400px;
+    transform: translate(-50%, -50%) rotate(-18deg);
+    opacity: 0.9;
+  }
+  .bb-hero-stage .bb-hero-katana-left {
+    transform: translate(-56%, -48%) rotate(-22deg);
+  }
+  .bb-hero-stage .bb-hero-katana-right {
+    transform: translate(-44%, -52%) rotate(-14deg);
+  }
+  .bb-hero-stage .bb-layer[src*="leaves-left-top"] {
+    top: -5%;
+    left: -8%;
+    width: 35vw;
+    max-width: 520px;
+    opacity: 0.7;
+  }
+  .bb-hero-stage .bb-layer[src*="leaves-right"] {
+    top: 8%;
+    right: -10%;
+    width: 32vw;
+    max-width: 480px;
+    opacity: 0.7;
+  }
+  .bb-hero-stage .bb-layer[src*="leaves-left-bot"] {
+    bottom: -12%;
+    left: -6%;
+    width: 36vw;
+    max-width: 560px;
+    opacity: 0.75;
+  }
+  .bb-hero-stage .bb-particles {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.2;
+  }
+
+  .bb-back {
+    position: absolute;
+    top: 2rem;
+    left: 6.25rem;
+    z-index: 10;
+    font-family: medium;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-decoration: none;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .bb-back:hover { opacity: 1; }
+
+  /* ─────────── BRIEF ─────────── */
+  .bb-brief {
+    display: grid;
+    grid-template-columns: minmax(140px, 1fr) 5fr;
+    gap: 4rem;
+    padding-top: 10rem;
+    padding-bottom: 8rem;
+  }
+  .bb-brief-left { align-self: start; padding-top: 0.5rem; }
+  .bb-quote {
+    font-family: medium;
+    font-size: clamp(34px, 3.8vw, 60px);
+    line-height: 1.1;
+    margin: 0 0 2.5rem;
+    text-transform: none;
+    max-width: 22ch;
+    color: var(--text);
+  }
+
+  /* ─────────── KATANA pinned ─────────── */
+  .bb-katana {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    min-height: 180vh;
+    background: var(--base);
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+  .bb-katana-text {
+    position: sticky;
+    top: 20vh;
+    align-self: start;
+    max-width: 42ch;
+  }
+  .bb-katana-stage {
+    position: sticky;
+    top: 10vh;
+    align-self: start;
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    max-width: 680px;
+    justify-self: end;
+  }
+  .bb-katana-piece {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 85%;
+    max-width: 560px;
+    transform: translate(-50%, -50%) rotate(-12deg);
+    transition: transform 1s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.6s ease;
+  }
+  /* initial state — разнесены, полупрозрачны */
+  .bb-katana-blade {
+    transform: translate(-50%, -120%) rotate(-22deg);
+    opacity: 0;
+  }
+  .bb-katana-left {
+    transform: translate(-120%, -50%) rotate(-40deg);
+    opacity: 0;
+  }
+  .bb-katana-right {
+    transform: translate(20%, -50%) rotate(20deg);
+    opacity: 0;
+  }
+  /* Когда секция в viewport и пройдено достаточно — схлопываются в целое */
+  .bb-katana[data-progress="1"] .bb-katana-blade { transform: translate(-50%, -50%) rotate(-12deg); opacity: 1; }
+  .bb-katana[data-progress="1"] .bb-katana-left { transform: translate(-50%, -50%) rotate(-12deg); opacity: 1; }
+  .bb-katana[data-progress="1"] .bb-katana-right { transform: translate(-50%, -50%) rotate(-12deg); opacity: 1; }
+
+  .bb-katana-labels { position: absolute; inset: 0; pointer-events: none; }
+  .bb-katana-label {
+    position: absolute;
+    font-family: medium;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--bb-accent);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .bb-katana[data-progress="1"] .bb-katana-label { opacity: 1; }
+  .bb-katana-label-blade { top: 6%; right: 12%; }
+  .bb-katana-label-left { bottom: 18%; left: 2%; }
+  .bb-katana-label-right { bottom: 8%; right: 4%; }
+
+  /* ─────────── BESTIARY ─────────── */
+  .bb-bestiary {
+    position: relative;
+    padding-top: 10rem;
+    padding-bottom: 10rem;
+    overflow: hidden;
+    background: var(--base);
+  }
+  .bb-huge {
+    font-family: medium;
+    font-size: clamp(80px, 16vw, 260px);
+    line-height: 0.9;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--text);
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    white-space: nowrap;
+    transform: translateX(-2%);
+  }
+
+  .bb-bestiary-stage {
+    position: relative;
+    margin-top: -8vw;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: minmax(240px, 20vw);
+    gap: 2rem;
+    z-index: 3;
+  }
+  .bb-beast {
+    margin: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .bb-beast img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    will-change: transform;
+  }
+  .bb-beast figcaption {
+    font-family: roman;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--bb-muted);
+    max-width: 40ch;
+  }
+  .bb-beast-bear { grid-column: 1 / span 5; grid-row: span 2; }
+  .bb-beast-ox   { grid-column: 7 / span 6; grid-row: 1 / span 1; align-self: start; }
+  .bb-beast-monkey { grid-column: 6 / span 5; grid-row: 2 / span 1; align-self: end; }
+
+  /* ─────────── PROCESS ─────────── */
+  .bb-process {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+  }
+  .bb-process-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3rem;
+  }
+  .bb-process-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--text);
+  }
+  .bb-process-num {
+    font-family: medium;
+    font-size: clamp(60px, 6vw, 96px);
+    line-height: 1;
+    color: var(--text);
+  }
+  .bb-process-text {
+    font-family: roman;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .bb-process-text strong {
+    font-family: medium;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--bb-accent);
+    font-weight: normal;
+  }
+
+  /* ─────────── DEPTH ─────────── */
+  .bb-depth {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 4rem;
+    padding-top: 10rem;
+    padding-bottom: 10rem;
+    overflow: hidden;
+    align-items: center;
+  }
+  .bb-depth-stage {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    width: 100%;
+  }
+  .bb-depth-layer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 90%;
+    max-width: 600px;
+    transform: translate(-50%, -50%);
+    will-change: transform;
+  }
+  .bb-depth-back { width: 70%; opacity: 0.7; }
+  .bb-depth-mid { width: 80%; opacity: 0.85; }
+  .bb-depth-front { width: 95%; }
+
+  /* ─────────── OUTCOME ─────────── */
+  .bb-outcome {
+    padding-top: 10rem;
+    padding-bottom: 12rem;
+    text-align: center;
+    background: var(--base);
+  }
+  .bb-pull {
+    font-family: medium;
+    font-size: clamp(44px, 6vw, 112px);
+    line-height: 1.05;
+    margin: 0 auto;
+    max-width: 16ch;
+    text-transform: none;
+    color: var(--text);
+  }
+  .bb-cite {
+    display: block;
+    margin-top: 1.5rem;
+    font-family: medium;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--bb-accent);
+    font-style: normal;
+  }
+  .bb-outcome-body {
+    margin: 3rem auto 0;
+    max-width: 52ch;
+    font-family: roman;
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--text);
+    text-align: left;
+  }
+  .bb-outcome-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    margin-top: 4rem;
+    font-family: medium;
+    font-size: clamp(22px, 2vw, 30px);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text);
+    text-decoration: none;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--bb-accent);
+    transition: gap 0.3s ease, color 0.2s ease;
+  }
+  .bb-outcome-cta:hover { gap: 1.2em; color: var(--bb-accent); }
+  .bb-outcome-cta .bb-arrow { transition: transform 0.3s ease; }
+  .bb-outcome-cta:hover .bb-arrow { transform: translate(0.3em, -0.3em); }
+
+  /* ─────────── Reveal-анимации ─────────── */
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(40px);
+    transition:
+      opacity 0.9s cubic-bezier(0.2, 0.8, 0.3, 1),
+      transform 0.9s cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  [data-reveal].is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ─────────── Адаптив ─────────── */
+  @media (max-width: 1024px) {
+    .bb-section { padding: 6rem 2.5rem; }
+    .bb-hero-grid { padding: 6rem 2.5rem 3rem; }
+    .bb-back { left: 2.5rem; }
+    .bb-brief { grid-template-columns: 1fr; gap: 2rem; padding-top: 6rem; padding-bottom: 6rem; }
+    .bb-katana { grid-template-columns: 1fr; min-height: auto; }
+    .bb-katana-text { position: static; max-width: none; }
+    .bb-katana-stage { position: static; margin: 4rem auto 0; }
+    .bb-bestiary-stage { grid-template-columns: 1fr; grid-auto-rows: auto; }
+    .bb-beast-bear, .bb-beast-ox, .bb-beast-monkey { grid-column: 1 / -1; grid-row: auto; }
+    .bb-beast img { max-height: 60vh; }
+    .bb-process-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .bb-depth { grid-template-columns: 1fr; gap: 3rem; }
+  }
+
+  @media (max-width: 640px) {
+    .bb-section { padding: 4rem 1.25rem; }
+    .bb-hero-grid { padding: 5rem 1.25rem 2rem; }
+    .bb-back { left: 1.25rem; top: 1.25rem; }
+    .bb-hero-meta { flex-direction: column; gap: 0.5rem; }
+    .bb-hero-foot { flex-direction: column; align-items: flex-start; gap: 2rem; }
+    .bb-title-line-offset { padding-left: 0; }
+    .bb-process-grid { grid-template-columns: 1fr; }
+    .bb-hero-stage .bb-hero-katana { width: 130vw; }
+  }
+</style>
+
+<script>
+  // Bespoke BananaBank: параллакс, cursor-follow, reveal, katana-прогресс.
+  // Работает через делегирование из astro:page-load — переживает навигацию.
+  function initBananaBank() {
+    const root = document.querySelector('.bb') as HTMLElement | null;
+    if (!root) return;
+
+    // ── 1. Reveal on scroll ──
+    const reveals = root.querySelectorAll<HTMLElement>('[data-reveal]');
+    if (reveals.length) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const el = entry.target as HTMLElement;
+              const delay = parseInt(el.dataset.revealDelay || '0', 10);
+              setTimeout(() => el.classList.add('is-revealed'), delay);
+              io.unobserve(el);
+            }
+          });
+        },
+        { rootMargin: '0px 0px -15% 0px', threshold: 0.1 }
+      );
+      reveals.forEach((el) => io.observe(el));
+    }
+
+    // ── 2. Собираем все движущиеся элементы: parallax + cursor-follow ──
+    // Один набор, чтобы пишем transform в одном месте за кадр и не затирали друг друга.
+    type MoverEntry = {
+      el: HTMLElement;
+      base: string;           // исходный inline transform (включая rotate)
+      parallax: number;       // speed или 0
+      cursor: number;         // strength или 0
+      cx: number; cy: number; // сглаженный курсор-оффсет
+    };
+
+    const movers: MoverEntry[] = [];
+    const seen = new Map<HTMLElement, MoverEntry>();
+
+    const add = (el: HTMLElement): MoverEntry => {
+      let m = seen.get(el);
+      if (m) return m;
+      // Берём computed transform как базу; 'none' → пустая строка, иначе matrix(...)
+      const computed = window.getComputedStyle(el).transform;
+      const base = computed && computed !== 'none' ? computed : '';
+      m = { el, base, parallax: 0, cursor: 0, cx: 0, cy: 0 };
+      seen.set(el, m);
+      movers.push(m);
+      return m;
+    };
+
+    root.querySelectorAll<HTMLElement>('[data-parallax]').forEach((el) => {
+      const m = add(el);
+      m.parallax = parseFloat(el.dataset.parallax || '0');
+    });
+    root.querySelectorAll<HTMLElement>('[data-cursor-follow]').forEach((el) => {
+      const m = add(el);
+      m.cursor = parseFloat(el.dataset.cursorFollow || '0');
+    });
+
+    // ── 3. Мышь в пределах hero ──
+    let mouseX = 0;
+    let mouseY = 0;
+    const hero = root.querySelector('.bb-hero') as HTMLElement | null;
+    const onMove = (e: MouseEvent) => {
+      if (!hero) return;
+      const rect = hero.getBoundingClientRect();
+      mouseX = (e.clientX - rect.left) / rect.width - 0.5;
+      mouseY = (e.clientY - rect.top) / rect.height - 0.5;
+    };
+    const onLeave = () => { mouseX = 0; mouseY = 0; };
+    if (hero) {
+      hero.addEventListener('mousemove', onMove);
+      hero.addEventListener('mouseleave', onLeave);
+    }
+
+    // ── 4. Katana progress ──
+    const katanaSection = root.querySelector('[data-katana-section]') as HTMLElement | null;
+
+    // ── RAF ──
+    let rafId = 0;
+    const tick = () => {
+      const vh = window.innerHeight;
+
+      movers.forEach((m) => {
+        let ty = 0;
+        if (m.parallax) {
+          const rect = m.el.getBoundingClientRect();
+          const centerY = rect.top + rect.height / 2;
+          const dist = centerY - vh / 2;
+          ty = (dist / vh) * m.parallax;
+        }
+        if (m.cursor) {
+          const tx = mouseX * m.cursor;
+          const tyC = mouseY * m.cursor;
+          m.cx += (tx - m.cx) * 0.08;
+          m.cy += (tyC - m.cy) * 0.08;
+        }
+        // Сборка: computed-matrix сначала (включает rotate из CSS), потом наши смещения.
+        // translate/translateY добавляется после matrix — браузер применит последовательно.
+        const dx = m.cursor ? m.cx : 0;
+        const dy = ty + (m.cursor ? m.cy : 0);
+        m.el.style.transform = `${m.base} translate(${dx}px, ${dy}px)`;
+      });
+
+      if (katanaSection) {
+        const r = katanaSection.getBoundingClientRect();
+        const total = r.height - vh;
+        const traveled = -r.top;
+        const progress = total > 0 ? Math.max(0, Math.min(1, traveled / (total * 0.4))) : 0;
+        katanaSection.dataset.progress = progress > 0.5 ? '1' : '0';
+      }
+
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+
+    document.addEventListener(
+      'astro:before-preparation',
+      () => {
+        cancelAnimationFrame(rafId);
+        if (hero) {
+          hero.removeEventListener('mousemove', onMove);
+          hero.removeEventListener('mouseleave', onLeave);
+        }
+      },
+      { once: true }
+    );
+  }
+
+  document.addEventListener('astro:page-load', initBananaBank);
+</script>

@@ -14,7 +14,14 @@
     "visit": "Visit live site ↗",
     "next": "Next project",
     "worksTitle": "/works",
-    "worksSubtitle": "Selected work, 2018 — 2025"
+    "worksSubtitle": "Selected work, 2018 — 2025",
+    "outroKicker": "— Let's work together",
+    "outroTitle": "Have a project in mind?",
+    "outroLede": "If any of this felt familiar — product without shape, design without a team, ideas without a place to land — write me. Small or scaling, one-off or ongoing.",
+    "outroTelegram": "Write on Telegram",
+    "outroEmail": "eugene@elkhovering.com",
+    "outroAllWorks": "All works",
+    "outroNext": "Next project"
   },
   "hero": {
     "title": "One <br /> person",

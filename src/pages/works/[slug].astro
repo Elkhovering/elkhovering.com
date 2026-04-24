@@ -2,6 +2,13 @@
 import { getCollection, getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import CaseStudy from '../../components/CaseStudy.astro';
+import BananaBank from '../../components/cases/BananaBank.astro';
+
+// Карта bespoke-страниц. Для slug из карты рендерим кастомный компонент,
+// остальное идёт через дефолтный CaseStudy.
+const customCases: Record<string, any> = {
+  'banana-bank': BananaBank,
+};
 
 export async function getStaticPaths() {
   // Канон slug-ов — EN-коллекция. RU-файл обязателен (иначе build-time ошибка ниже).
@@ -21,10 +28,12 @@ const entryRu = await getEntry('works', `ru/${slug}`);
 if (!entryEn || !entryRu) {
   throw new Error(`Missing locale entry for slug "${slug}" (en: ${!!entryEn}, ru: ${!!entryRu})`);
 }
+
+const CaseComponent = customCases[slug] ?? CaseStudy;
 ---
 <Layout
   title={`${entryEn.data.title} — Elkhovering`}
   description={entryEn.data.summary}
 >
-  <CaseStudy entryEn={entryEn} entryRu={entryRu} />
+  <CaseComponent entryEn={entryEn} entryRu={entryRu} />
 </Layout>

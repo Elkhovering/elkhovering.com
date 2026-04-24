@@ -1,8 +1,11 @@
 ---
-// Editorial list. Один URL на страницу; язык переключается через html[data-lang].
-// UI-строки (back, title, role-label) — через data-i18n.
-// Контент карточки (title/summary/role) приходит из разных .md-файлов,
-// поэтому дублируется в двух [data-case-lang] блоках.
+// Editorial Index — /works.
+// Концепт: оглавление печатного журнала. Проекты = типографские строки.
+// Signature-момент: обложка материализуется как preview у курсора при hover
+// и тильтит в сторону движения мыши. Hover также приглушает соседние строки.
+//
+// UI-строки — через data-i18n, контент проекта (title/summary) — через
+// [data-case-lang] (html[data-lang] глобально скрывает неактивную локаль).
 
 import { getCollection } from 'astro:content';
 import { worksOrderByYear } from '../data/works.js';
@@ -14,39 +17,563 @@ const ruBySlug = new Map(all.filter((e: any) => e.id.startsWith('ru/') && !e.dat
 const ordered = worksOrderByYear
   .filter((s) => enBySlug.get(s) && ruBySlug.get(s))
   .map((s) => ({ slug: s, en: enBySlug.get(s)!, ru: ruBySlug.get(s)! }));
+
+// Двузначный номер для индекса: N° 01, N° 02, ...
+const pad2 = (n: number) => String(n).padStart(2, '0');
 ---
-<section class="section works-index">
-  <header class="works-index-top">
-    <a class="works-index-back" data-cursor="open" href="/" data-i18n="ui.back">← Home</a>
-    <div class="sec-title" data-i18n="ui.worksTitle">/works</div>
-    <p class="works-index-subtitle" data-i18n="ui.worksSubtitle">Selected work, 2018 — 2025</p>
+<section class="wx">
+  {/* ─────────── HEADER ─────────── */}
+  <header class="wx-head">
+    <a class="wx-back" data-cursor="open" href="/" data-i18n="ui.back">← Home</a>
+
+    <div class="wx-kicker" data-reveal="fade" data-reveal-delay="100">
+      <span class="wx-kicker-dot" aria-hidden="true"></span>
+      <span data-case-lang="en">Index · 2018 — 2025</span>
+      <span data-case-lang="ru">Указатель · 2018 — 2025</span>
+    </div>
+
+    <h1 class="wx-title" aria-label="Selected works">
+      <span class="wx-title-line">
+        <span class="wx-title-inner" data-case-lang="en">Selected</span>
+        <span class="wx-title-inner" data-case-lang="ru">Избранные</span>
+      </span>
+      <span class="wx-title-line wx-title-line--outline">
+        <span class="wx-title-inner" data-case-lang="en">Works</span>
+        <span class="wx-title-inner" data-case-lang="ru">Работы</span>
+      </span>
+    </h1>
+
+    <p class="wx-lede">
+      <span data-case-lang="en">
+        Nine projects across product, brand and interactive.<br />
+        Hover a line — the cover finds you.
+      </span>
+      <span data-case-lang="ru">
+        Девять проектов — продукт, бренд, интерактив.<br />
+        Наведи на строку — обложка сама найдёт курсор.
+      </span>
+    </p>
   </header>
 
-  <ul class="works-list">
-    {ordered.map(({ slug, en, ru }) => (
-      <li class="works-list-row">
-        <a class="works-list-link" data-cursor="see-more" href={`/works/${slug}`}>
-          <div class="works-list-cover">
-            <img
-              src={en.data.cover}
-              alt={en.data.title}
-              style={`view-transition-name: work-${slug};`}
-            />
-          </div>
-          <div class="works-list-meta">
-            <div class="works-list-year">{en.data.year}</div>
+  {/* ─────────── LIST ─────────── */}
+  <ol class="wx-list" data-count={ordered.length}>
+    {ordered.map(({ slug, en, ru }, i) => (
+      <li class="wx-row" data-cover={en.data.cover} data-slug={slug}>
+        <a class="wx-row-link" data-cursor="see-more" href={`/works/${slug}`}>
+          <span class="wx-row-num">N° {pad2(i + 1)}</span>
+          <span class="wx-row-year">{en.data.year}</span>
 
-            <div data-case-lang="en">
-              <h2 class="works-list-title">{en.data.title}</h2>
-              <p class="works-list-summary">{en.data.summary}</p>
-            </div>
-            <div data-case-lang="ru">
-              <h2 class="works-list-title">{ru.data.title}</h2>
-              <p class="works-list-summary">{ru.data.summary}</p>
-            </div>
-          </div>
+          <span class="wx-row-title">
+            <span class="wx-row-title-mask">
+              <span class="wx-row-title-inner" data-case-lang="en">{en.data.title}</span>
+              <span class="wx-row-title-inner" data-case-lang="ru">{ru.data.title}</span>
+            </span>
+          </span>
+
+          <span class="wx-row-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="1">
+              <path d="M0 6h22M17 1l5 5-5 5" />
+            </svg>
+          </span>
+
+          {/* Inline-обложка для мобильных (на десктопе скрыта — там preview у курсора) */}
+          <span class="wx-row-thumb" aria-hidden="true">
+            <img src={en.data.cover} alt="" loading="lazy" />
+          </span>
         </a>
       </li>
     ))}
-  </ul>
+  </ol>
+
+  {/* ─────────── FLOATING COVER PREVIEW ─────────── */}
+  <div class="wx-preview" aria-hidden="true">
+    <div class="wx-preview-frame">
+      <img src="" alt="" />
+    </div>
+  </div>
+
+  {/* ─────────── FOOT ─────────── */}
+  <footer class="wx-foot">
+    <span class="wx-foot-rule" aria-hidden="true"></span>
+    <span class="wx-foot-label" data-case-lang="en">— End of index</span>
+    <span class="wx-foot-label" data-case-lang="ru">— Конец указателя</span>
+    <span class="wx-foot-count">{ordered.length} / {ordered.length}</span>
+  </footer>
 </section>
+
+<style>
+  /* ─────────── Concept ───────────
+     Сайтовая палитра: warm cream var(--base) + чёрный var(--text).
+     Никакого акцентного цвета — чистая editorial тень и контраст.
+     Типографика — Helvetica стек сайта (roman/medium/bold).
+     Signature: крупный outline-заголовок + cover-preview follow курсора. */
+  .wx {
+    --wx-hair: rgba(0, 0, 0, 0.15);
+    --wx-hair-strong: rgba(0, 0, 0, 0.65);
+    --wx-muted: rgba(0, 0, 0, 0.55);
+    --wx-dim: rgba(0, 0, 0, 0.25);
+    --wx-ease: cubic-bezier(0.16, 1, 0.3, 1);       /* expo out */
+    --wx-ease-io: cubic-bezier(0.76, 0, 0.24, 1);   /* quart in-out */
+    --wx-ink: grayscale(1) contrast(1.18) brightness(0.96);
+
+    position: relative;
+    z-index: 100;
+    background: var(--base);
+    color: var(--text);
+    padding: 10rem 6.25rem 4rem;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .wx ::selection { background: var(--text); color: var(--base); }
+
+  /* ─────────── Head ─────────── */
+  .wx-back {
+    font-family: medium;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 6rem;
+    transition: transform 0.6s var(--wx-ease);
+  }
+  .wx-back:hover { transform: translateX(-0.5rem); text-decoration: none; }
+
+  .wx-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: medium;
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 1.25rem;
+  }
+  .wx-kicker-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text);
+    animation: wxPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes wxPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.3; transform: scale(0.6); }
+  }
+
+  .wx-title {
+    font-family: bold;
+    font-size: clamp(96px, 20vw, 280px);
+    line-height: 0.82;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+    margin: 0;
+    color: var(--text);
+  }
+  .wx-title-line {
+    display: block;
+    overflow: hidden;
+    padding: 0.04em 0;                /* дышим, чтобы clip-mask не резал низ глифа */
+  }
+  .wx-title-line--outline {
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--text);
+    padding-left: 0.12em;             /* оптический offset для композиции */
+    margin-top: -0.04em;
+  }
+  .wx-title-inner {
+    display: inline-block;
+    transform: translate3d(0, 101%, 0);
+    transition: transform 1.1s var(--wx-ease);
+    will-change: transform;
+  }
+  .wx-title-inner.is-in { transform: translate3d(0, 0, 0); }
+
+  .wx-lede {
+    font-family: roman;
+    font-size: clamp(16px, 1.4vw, 18px);
+    line-height: 1.45;
+    max-width: 42ch;
+    margin: 3.5rem 0 0;
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 1s var(--wx-ease), transform 1s var(--wx-ease);
+  }
+  .wx-lede.is-in { opacity: 1; transform: none; }
+
+  /* ─────────── List ─────────── */
+  .wx-list {
+    list-style: none;
+    padding: 0;
+    margin: 7rem 0 0;
+    border-top: 1px solid var(--wx-hair);
+  }
+
+  .wx-row {
+    position: relative;
+    border-bottom: 1px solid var(--wx-hair);
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity 0.9s var(--wx-ease),
+      transform 0.9s var(--wx-ease),
+      color 0.5s ease;
+  }
+  .wx-row.is-in { opacity: 1; transform: none; }
+
+  /* Приглушаем соседей когда hover на списке, и подсвечиваем активный */
+  .wx.is-row-hover .wx-row { color: var(--wx-dim); }
+  .wx.is-row-hover .wx-row.is-hot { color: var(--text); }
+
+  .wx-row-link {
+    display: grid;
+    grid-template-columns: 80px 80px 1fr auto;
+    column-gap: 2rem;
+    align-items: baseline;
+    padding: 2.25rem 0;
+    color: inherit;
+    text-decoration: none;
+    position: relative;
+    cursor: none;
+  }
+  .wx-row-link:hover { text-decoration: none; }
+
+  .wx-row-num,
+  .wx-row-year {
+    font-family: medium;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding-top: 0.9em;               /* baseline-align под огромный title */
+  }
+  .wx-row-year { color: inherit; opacity: 0.7; }
+
+  .wx-row-title {
+    display: block;
+    position: relative;
+  }
+  .wx-row-title-mask {
+    display: block;
+    overflow: hidden;
+    padding: 0.04em 0;
+    line-height: 1;
+  }
+  .wx-row-title-inner {
+    display: inline-block;
+    font-family: bold;
+    font-size: clamp(44px, 7vw, 108px);
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+    transform: translate3d(0, 0, 0);
+    transition:
+      transform 0.8s var(--wx-ease-io),
+      letter-spacing 0.8s var(--wx-ease-io);
+    will-change: transform;
+  }
+  .wx-row-link:hover .wx-row-title-inner {
+    transform: translate3d(-0.15em, 0, 0);
+    letter-spacing: -0.02em;
+  }
+
+  .wx-row-arrow {
+    display: inline-flex;
+    align-items: center;
+    padding-top: 1em;
+    opacity: 0.35;
+    transform: translateX(-1.5rem);
+    transition:
+      opacity 0.6s var(--wx-ease),
+      transform 0.6s var(--wx-ease);
+  }
+  .wx-row-arrow svg {
+    width: 52px;
+    height: auto;
+    display: block;
+  }
+  .wx-row-link:hover .wx-row-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Inline thumbnail — только на мобильных */
+  .wx-row-thumb {
+    display: none;
+  }
+
+  /* ─────────── Floating preview ─────────── */
+  .wx-preview {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 340px;
+    height: 240px;
+    pointer-events: none;
+    z-index: 150;
+    opacity: 0;
+    transition: opacity 0.5s var(--wx-ease);
+    will-change: transform, opacity;
+  }
+  .wx-preview.is-active { opacity: 1; }
+  .wx-preview-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--base);
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path 0.8s var(--wx-ease);
+  }
+  .wx-preview.is-active .wx-preview-frame {
+    clip-path: inset(0 0 0 0);
+  }
+  .wx-preview-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: var(--wx-ink);
+    mix-blend-mode: multiply;
+    transform: scale(1.08);
+    transition: transform 1.2s var(--wx-ease);
+  }
+  .wx-preview.is-active .wx-preview-frame img {
+    transform: scale(1);
+  }
+
+  /* ─────────── Foot ─────────── */
+  .wx-foot {
+    margin-top: 8rem;
+    padding-top: 1.5rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2rem;
+    font-family: medium;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--wx-muted);
+  }
+  .wx-foot-rule {
+    position: absolute;
+    left: 6.25rem;
+    right: 6.25rem;
+    height: 1px;
+    background: var(--wx-hair-strong);
+    transform: translateY(-1.5rem);
+  }
+  .wx-foot-label { margin-right: auto; }
+
+  /* ─────────── Reveal utility ─────────── */
+  [data-reveal="fade"] {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.9s var(--wx-ease), transform 0.9s var(--wx-ease);
+  }
+  [data-reveal="fade"].is-in { opacity: 1; transform: none; }
+
+  /* ─────────── Responsive ─────────── */
+  @media (max-width: 1024px) {
+    .wx { padding: 8rem 2.5rem 3rem; }
+    .wx-back { margin-bottom: 4rem; }
+    .wx-list { margin-top: 5rem; }
+    .wx-row-link { grid-template-columns: 60px 60px 1fr auto; column-gap: 1.25rem; padding: 1.75rem 0; }
+    .wx-foot-rule { left: 2.5rem; right: 2.5rem; }
+  }
+
+  @media (max-width: 720px) {
+    .wx { padding: 7rem 1.25rem 2rem; }
+    .wx-title { font-size: clamp(72px, 22vw, 140px); }
+    .wx-row-link {
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto auto;
+      column-gap: 1rem;
+      row-gap: 0.75rem;
+      padding: 1.75rem 0;
+    }
+    .wx-row-num { grid-column: 1; grid-row: 1; padding-top: 0; }
+    .wx-row-year { grid-column: 2; grid-row: 1; padding-top: 0; justify-self: end; }
+    .wx-row-title { grid-column: 1 / -1; grid-row: 2; }
+    .wx-row-title-inner { font-size: clamp(40px, 11vw, 64px); }
+    .wx-row-arrow { display: none; }
+
+    /* На мобильных показываем thumb внутри строки */
+    .wx-row-thumb {
+      display: block;
+      grid-column: 1 / -1;
+      grid-row: 3;
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+      background: var(--base);
+    }
+    .wx-row-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: var(--wx-ink);
+      mix-blend-mode: multiply;
+    }
+
+    /* Preview у курсора — на мобильных лишний */
+    .wx-preview { display: none; }
+
+    .wx-foot-rule { left: 1.25rem; right: 1.25rem; }
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .wx-title-inner,
+    .wx-lede,
+    .wx-row,
+    [data-reveal="fade"] {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    .wx-preview { display: none !important; }
+    .wx-kicker-dot { animation: none; }
+  }
+</style>
+
+<script>
+  // Editorial Index — orchestration и cursor-follow preview.
+  // Работает под ClientRouter: стартуем на astro:page-load, cleanup на before-preparation.
+
+  type WxRow = HTMLLIElement & { _hot?: boolean };
+
+  function initWorksIndex() {
+    const root = document.querySelector<HTMLElement>('.wx');
+    if (!root) return;
+
+    // Respect reduced-motion — скрипт в основном только раскрывает и следит за курсором.
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ── 1. Page-enter choreography ──
+    // Hero слова: стаггер translateY(101%) → 0
+    const titleWords = Array.from(
+      root.querySelectorAll<HTMLElement>('.wx-title-inner')
+    );
+    titleWords.forEach((w, i) => {
+      w.style.transitionDelay = `${200 + i * 90}ms`;
+      requestAnimationFrame(() => w.classList.add('is-in'));
+    });
+
+    const lede = root.querySelector<HTMLElement>('.wx-lede');
+    if (lede) {
+      lede.style.transitionDelay = '600ms';
+      requestAnimationFrame(() => lede.classList.add('is-in'));
+    }
+
+    const kicker = root.querySelector<HTMLElement>('[data-reveal="fade"]');
+    if (kicker) {
+      requestAnimationFrame(() => kicker.classList.add('is-in'));
+    }
+
+    // ── 2. Строки проявляются на скролле со стаггером ──
+    const rows = Array.from(root.querySelectorAll<WxRow>('.wx-row'));
+    const seen = new WeakSet<Element>();
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        // Группируем входящие в этом тике → даём им стаггер относительно друг друга
+        const incoming = entries
+          .filter((e) => e.isIntersecting && !seen.has(e.target))
+          .sort((a, b) => (a.target as HTMLElement).offsetTop - (b.target as HTMLElement).offsetTop);
+
+        incoming.forEach((e, i) => {
+          const el = e.target as HTMLElement;
+          seen.add(el);
+          el.style.transitionDelay = `${i * 70}ms`;
+          el.classList.add('is-in');
+          io.unobserve(el);
+        });
+      },
+      { rootMargin: '0px 0px -8% 0px', threshold: 0.15 }
+    );
+    rows.forEach((r) => io.observe(r));
+
+    // ── 3. Cover preview follows cursor ──
+    // Только если не reduced-motion и есть preview-элемент (= не мобила).
+    const preview = root.querySelector<HTMLElement>('.wx-preview');
+    const previewImg = preview?.querySelector<HTMLImageElement>('img');
+    let rafId = 0;
+
+    if (!reducedMotion && preview && previewImg && window.matchMedia('(min-width: 721px)').matches) {
+      let targetX = window.innerWidth / 2;
+      let targetY = window.innerHeight / 2;
+      let curX = targetX;
+      let curY = targetY;
+      let lastMoveX = targetX;
+      let tiltVel = 0;
+
+      const onMove = (e: MouseEvent) => {
+        targetX = e.clientX;
+        targetY = e.clientY;
+        tiltVel += (e.clientX - lastMoveX) * 0.25;
+        lastMoveX = e.clientX;
+      };
+
+      const setActive = (row: WxRow) => {
+        if (row._hot) return;
+        rows.forEach((r) => {
+          r._hot = false;
+          r.classList.remove('is-hot');
+        });
+        row._hot = true;
+        row.classList.add('is-hot');
+        root.classList.add('is-row-hover');
+
+        // Preview-картинка: меняем только если отличается (избегаем мерцания)
+        const cover = row.dataset.cover;
+        if (cover && previewImg.getAttribute('src') !== cover) {
+          previewImg.src = cover;
+        }
+        preview.classList.add('is-active');
+      };
+
+      const clearActive = () => {
+        rows.forEach((r) => {
+          r._hot = false;
+          r.classList.remove('is-hot');
+        });
+        root.classList.remove('is-row-hover');
+        preview.classList.remove('is-active');
+      };
+
+      rows.forEach((row) => {
+        row.addEventListener('mouseenter', () => setActive(row));
+      });
+
+      const list = root.querySelector<HTMLElement>('.wx-list');
+      list?.addEventListener('mousemove', onMove);
+      list?.addEventListener('mouseleave', clearActive);
+
+      const tick = () => {
+        curX += (targetX - curX) * 0.14;
+        curY += (targetY - curY) * 0.14;
+        const tilt = Math.max(-10, Math.min(10, tiltVel));
+        tiltVel *= 0.82;
+        preview.style.transform =
+          `translate3d(${curX}px, ${curY}px, 0) translate(-50%, -50%) rotate(${tilt.toFixed(2)}deg)`;
+        rafId = requestAnimationFrame(tick);
+      };
+      rafId = requestAnimationFrame(tick);
+
+      // Cleanup
+      document.addEventListener(
+        'astro:before-preparation',
+        () => {
+          cancelAnimationFrame(rafId);
+          list?.removeEventListener('mousemove', onMove);
+          list?.removeEventListener('mouseleave', clearActive);
+        },
+        { once: true }
+      );
+    }
+  }
+
+  document.addEventListener('astro:page-load', initWorksIndex);
+</script>

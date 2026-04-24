@@ -542,207 +542,16 @@ html[data-lang="ru"] [data-case-lang="en"] {
   display: none !important;
 }
 
-/* Страницы кейсов и /works — снимаем 100vh и will-change с .section,
-   добавленные для главной. На этих страницах секции = контентная высота. */
-.works-index,
+/* Страницы кейсов — снимаем 100vh и will-change с .section, добавленные для главной.
+   Editorial-index /works (.wx) живёт вне .section и задаёт свою геометрию сам. */
 .case-header,
 .case-meta,
 .case-body,
-.case-gallery,
-.case-next {
+.case-gallery {
   height: auto;
   min-height: 0;
   will-change: auto;
   margin-bottom: 0;
-}
-
-.works-index {
-  flex-direction: column;
-  padding-top: 8rem;
-  padding-bottom: 6rem;
-  gap: 4rem;
-  align-items: stretch;
-  position: relative;
-  z-index: 100;
-  background-color: var(--base);
-}
-
-.works-index-top {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
-  padding-bottom: 2rem;
-}
-
-.works-index-back {
-  font-family: medium;
-  font-size: 18px;
-  color: var(--text);
-  text-decoration: none;
-  letter-spacing: 0.02em;
-}
-.works-index-back:hover { text-decoration: underline; }
-
-.works-index-subtitle {
-  font-family: roman;
-  font-size: 22px;
-  color: var(--text);
-  margin: 0.75rem 0 0 0;
-  opacity: 0.7;
-}
-
-.works-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ── Bento-раскладка списка /works ──
-   Mobile-first: одна колонка. Планшет (>=640): 6 колонок, ритм из 3.
-   Десктоп (>=1000): 12 колонок, ритм из 5. grid-auto-flow: dense
-   подбирает дыры. */
-.works-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-auto-rows: minmax(260px, auto);
-  grid-auto-flow: dense;
-  gap: 1rem;
-}
-
-.works-list-row {
-  position: relative;
-  overflow: hidden;
-  background: #cfcdcb;
-  border-radius: 2px;
-}
-
-.works-list-link {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  width: 100%;
-  height: 100%;
-  min-height: 260px;
-  padding: 1.5rem;
-  text-decoration: none;
-  color: var(--base);
-  overflow: hidden;
-  isolation: isolate;
-}
-
-/* Обложка — absolutely-positioned фон с затемняющим градиентом. */
-.works-list-cover {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  z-index: 0;
-}
-.works-list-cover::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.75) 0%,
-    rgba(0, 0, 0, 0.35) 35%,
-    rgba(0, 0, 0, 0) 70%
-  );
-  z-index: 1;
-  transition: opacity 0.4s ease;
-}
-.works-list-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.8s ease;
-  filter: saturate(85%);
-}
-.works-list-link:hover .works-list-cover img {
-  transform: scale(1.04);
-  filter: saturate(100%);
-}
-
-.works-list-meta {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  color: var(--base);
-}
-
-.works-list-year {
-  font-family: medium;
-  font-size: 14px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.75;
-}
-
-.works-list-title {
-  font-family: bold;
-  font-size: clamp(28px, 3.2vw, 56px);
-  line-height: 1;
-  margin: 0;
-  text-transform: uppercase;
-  transition: transform 0.4s ease;
-}
-.works-list-link:hover .works-list-title { transform: translateY(-2px); }
-
-.works-list-summary {
-  font-family: roman;
-  font-size: 16px;
-  line-height: 1.35;
-  margin: 0.25rem 0 0 0;
-  max-width: 44ch;
-  opacity: 0.9;
-}
-
-.works-list-role {
-  font-family: medium;
-  font-size: 13px;
-  letter-spacing: 0.02em;
-  opacity: 0.75;
-  margin-top: 0.5rem;
-}
-.works-list-role-label { opacity: 0.7; }
-
-/* ── Bento-ритм: планшет (6 колонок, цикл из 3) ── */
-@media (min-width: 640px) {
-  .works-list {
-    grid-template-columns: repeat(6, 1fr);
-    grid-auto-rows: minmax(240px, 18vw);
-    gap: 1rem;
-  }
-  .works-list-row { grid-column: span 3; grid-row: span 1; }
-  .works-list-row:nth-child(3n + 1) { grid-column: span 6; grid-row: span 2; }
-}
-
-/* ── Bento-ритм: десктоп (12 колонок, цикл из 5) ──
-   Паттерн: hero-широкое высокое → узкое высокое → два средних → широкое низкое.
-   Получается журнальная ритмика с акцентами. */
-@media (min-width: 1000px) {
-  .works-list {
-    grid-template-columns: repeat(12, 1fr);
-    grid-auto-rows: minmax(220px, 16vw);
-    gap: 1.25rem;
-  }
-  .works-list-row { grid-column: span 4; grid-row: span 1; }
-  .works-list-row:nth-child(5n + 1) { grid-column: span 7; grid-row: span 2; }
-  .works-list-row:nth-child(5n + 2) { grid-column: span 5; grid-row: span 2; }
-  .works-list-row:nth-child(5n + 3) { grid-column: span 4; grid-row: span 1; }
-  .works-list-row:nth-child(5n + 4) { grid-column: span 4; grid-row: span 1; }
-  .works-list-row:nth-child(5n + 5) { grid-column: span 4; grid-row: span 1; }
-
-  .works-list-link { padding: 2rem; }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -967,50 +776,11 @@ html[data-lang="ru"] [data-case-lang="en"] {
   display: block;
 }
 
-.case-next {
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
-  padding-top: 4rem;
-  padding-bottom: 2rem;
-  flex-direction: column;
-  align-items: stretch;
-}
-
-.case-next-link {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  text-decoration: none;
-  color: var(--text);
-}
-.case-next-link:hover .case-next-title { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 8px; }
-
-.case-next-label {
-  font-family: medium;
-  font-size: 14px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.55;
-}
-
-.case-next-title {
-  font-family: bold;
-  font-size: clamp(40px, 6vw, 80px);
-  line-height: 1;
-  text-transform: uppercase;
-}
-
 /* ══════════════════════════════════════════════════════
    Responsive: /works + case study
    ══════════════════════════════════════════════════════ */
 
 @media (max-width: 900px) {
-  .works-list-link {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  .works-list-title { font-size: 48px; }
-  .works-list-summary { font-size: 18px; }
-
   .case-header { padding-top: 6rem; }
   .case-heading { flex-direction: column; align-items: flex-start; }
   .case-summary { font-size: 22px; }

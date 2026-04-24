@@ -7,6 +7,7 @@
 
 import { render, getCollection } from 'astro:content';
 import { worksOrderByYear } from '../data/works.js';
+import CaseOutro from './CaseOutro.astro';
 
 interface Props {
   entryEn: any;
@@ -132,14 +133,12 @@ const hasTagsRu = entryRu.data.tags && entryRu.data.tags.length > 0;
     </section>
   )}
 
-  {/* Next project: лейбл через data-i18n, title — по локали */}
-  {nextEn && nextRu && (
-    <nav class="section case-next">
-      <a class="case-next-link" data-cursor="see-more" href={`/works/${nextSlug}`}>
-        <div class="case-next-label" data-i18n="ui.next">Next project</div>
-        <div class="case-next-title" data-case-lang="en">{nextEn.data.title}</div>
-        <div class="case-next-title" data-case-lang="ru">{nextRu.data.title}</div>
-      </a>
-    </nav>
-  )}
 </article>
+
+{/* CTA + возврат в галерею + следующий проект — живут вне <article>,
+    чтобы outro не ссылался на meta-блок семантически. */}
+<CaseOutro
+  nextSlug={nextSlug}
+  nextTitleEn={nextEn?.data?.title ?? null}
+  nextTitleRu={nextRu?.data?.title ?? null}
+/>

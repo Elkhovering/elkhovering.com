@@ -1,0 +1,257 @@
+---
+// Общий outro для всех case-study страниц (editorial CaseStudy + bespoke компонентов).
+// Концепт: «задняя обложка журнала» — большой CTA, контакты, нижний нав (все работы / следующий проект).
+// Стили используют сайтовую палитру (var(--base) / var(--text)), так что вписывается и в CaseStudy,
+// и в BananaBank (который теперь тоже наследует общий концепт).
+//
+// Next-project передаётся опционально. Если его нет — нижний нав показывает только «← All works».
+
+interface Props {
+  nextSlug?: string | null;
+  nextTitleEn?: string | null;
+  nextTitleRu?: string | null;
+}
+const { nextSlug = null, nextTitleEn = null, nextTitleRu = null } = Astro.props;
+
+const telegram = 'https://t.me/elkhovering';
+const email = 'eugene@elkhovering.com';
+---
+<footer class="case-outro">
+  <div class="case-outro-inner">
+    {/* ─── Top: editorial CTA ─── */}
+    <span class="case-outro-kicker" data-i18n="ui.outroKicker">— Let's work together</span>
+
+    <h2 class="case-outro-title" data-i18n="ui.outroTitle">
+      Have a project in mind?
+    </h2>
+
+    <p class="case-outro-lede" data-i18n="ui.outroLede">
+      If any of this felt familiar — product without shape, design without a team,
+      ideas without a place to land — write me. Small or scaling, one-off or ongoing.
+    </p>
+
+    <div class="case-outro-links">
+      <a
+        class="case-outro-primary"
+        data-cursor="open"
+        href={telegram}
+        target="_blank"
+        rel="noopener"
+      >
+        <span class="case-outro-primary-text" data-i18n="ui.outroTelegram">Write on Telegram</span>
+        <span class="case-outro-primary-arrow" aria-hidden="true">↗</span>
+      </a>
+
+      <a
+        class="case-outro-secondary"
+        data-cursor="copy"
+        data-copy={email}
+        href={`mailto:${email}`}
+      >
+        <span data-i18n="ui.outroEmail">{email}</span>
+      </a>
+    </div>
+
+    {/* ─── Bottom nav: all works + next project ─── */}
+    <nav class="case-outro-nav">
+      <a class="case-outro-nav-item case-outro-nav-item--back" data-cursor="see-more" href="/works">
+        <span class="case-outro-nav-arrow" aria-hidden="true">←</span>
+        <span class="case-outro-nav-label" data-i18n="ui.outroAllWorks">All works</span>
+      </a>
+
+      {nextSlug && (
+        <a
+          class="case-outro-nav-item case-outro-nav-item--next"
+          data-cursor="see-more"
+          href={`/works/${nextSlug}`}
+        >
+          <span class="case-outro-nav-meta" data-i18n="ui.outroNext">Next project</span>
+          <span class="case-outro-nav-title" data-case-lang="en">{nextTitleEn}</span>
+          <span class="case-outro-nav-title" data-case-lang="ru">{nextTitleRu}</span>
+          <span class="case-outro-nav-arrow case-outro-nav-arrow--right" aria-hidden="true">→</span>
+        </a>
+      )}
+    </nav>
+  </div>
+</footer>
+
+<style>
+  /* Вписывается в сайт: warm cream + черный текст + Helvetica.
+     Никакого акцентного цвета — editorial замыкание страницы. */
+  .case-outro {
+    position: relative;
+    z-index: 100;
+    background: var(--base);
+    color: var(--text);
+    padding: 10rem 6.25rem 6rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    --outro-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .case-outro-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: 2.5rem;
+  }
+
+  .case-outro-kicker {
+    font-family: medium;
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text);
+    opacity: 0.7;
+  }
+
+  .case-outro-title {
+    font-family: bold;
+    font-size: clamp(44px, 7vw, 112px);
+    line-height: 0.95;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+    margin: 0;
+    max-width: 16ch;
+  }
+
+  .case-outro-lede {
+    font-family: roman;
+    font-size: clamp(16px, 1.4vw, 20px);
+    line-height: 1.45;
+    max-width: 52ch;
+    margin: 0;
+    color: var(--text);
+  }
+
+  /* ─── Контактные ссылки ─── */
+  .case-outro-links {
+    display: flex;
+    align-items: baseline;
+    gap: 3rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+
+  .case-outro-primary {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5em;
+    font-family: medium;
+    font-size: clamp(28px, 3.6vw, 56px);
+    letter-spacing: -0.015em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--text);
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--text);
+    transition: gap 0.5s var(--outro-ease);
+  }
+  .case-outro-primary:hover {
+    gap: 1em;
+    text-decoration: none;
+  }
+  .case-outro-primary-arrow {
+    display: inline-block;
+    transition: transform 0.5s var(--outro-ease);
+  }
+  .case-outro-primary:hover .case-outro-primary-arrow {
+    transform: translate(0.25em, -0.25em);
+  }
+
+  .case-outro-secondary {
+    font-family: medium;
+    font-size: clamp(15px, 1.3vw, 18px);
+    letter-spacing: 0.02em;
+    color: var(--text);
+    text-decoration: none;
+    opacity: 0.7;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+    transition: opacity 0.3s ease, border-color 0.3s ease;
+  }
+  .case-outro-secondary:hover {
+    opacity: 1;
+    border-color: var(--text);
+    text-decoration: none;
+  }
+
+  /* ─── Нижний нав ─── */
+  .case-outro-nav {
+    margin-top: 6rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .case-outro-nav-item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.6em;
+    text-decoration: none;
+    color: var(--text);
+    transition: gap 0.5s var(--outro-ease);
+  }
+  .case-outro-nav-item:hover {
+    text-decoration: none;
+    gap: 1em;
+  }
+
+  .case-outro-nav-item--back {
+    font-family: medium;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .case-outro-nav-item--next {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    text-align: right;
+  }
+  .case-outro-nav-meta {
+    font-family: medium;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+  .case-outro-nav-title {
+    font-family: bold;
+    font-size: clamp(22px, 2.4vw, 32px);
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    transition: transform 0.5s var(--outro-ease);
+  }
+  .case-outro-nav-item--next:hover .case-outro-nav-title {
+    transform: translateX(0.3em);
+  }
+
+  .case-outro-nav-arrow {
+    display: inline-block;
+    transition: transform 0.5s var(--outro-ease);
+  }
+  .case-outro-nav-item--back:hover .case-outro-nav-arrow {
+    transform: translateX(-0.4em);
+  }
+
+  /* ─── Адаптив ─── */
+  @media (max-width: 1024px) {
+    .case-outro { padding: 7rem 2.5rem 4rem; }
+    .case-outro-nav { margin-top: 4rem; }
+  }
+
+  @media (max-width: 720px) {
+    .case-outro { padding: 5rem 1.25rem 3rem; }
+    .case-outro-inner { row-gap: 1.75rem; }
+    .case-outro-links { gap: 1.5rem; flex-direction: column; align-items: flex-start; }
+    .case-outro-nav { margin-top: 3rem; flex-direction: column; align-items: flex-start; gap: 2rem; }
+    .case-outro-nav-item--next { align-items: flex-start; text-align: left; }
+  }
+</style>
