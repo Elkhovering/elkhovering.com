@@ -12,4 +12,4 @@ cover: /media/projects/banana-bank/main.png
 gallery: []
 ---
 
-{/* Нарратив живёт в src/components/cases/BananaBank.astro — этот файл держит только мета. */}
+<!-- Нарратив живёт в src/components/cases/BananaBank.astro — этот файл держит только мета. -->

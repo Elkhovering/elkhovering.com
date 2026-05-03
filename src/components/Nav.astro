@@ -1,11 +1,55 @@
 ---
 // Навигация. Переживает View Transitions через transition:persist.
 // Единый URL на страницу — язык переключается клиентски через html[data-lang].
+//
+// Контент:
+//   - Лейблы (currently / location / contact) — через data-i18n, тексты живут
+//     в /public/i18n/{en,ru}.json и редактируются через /admin.
+//   - Ссылка на текущий проект — из src/data/site.json (имя + URL).
+//     Эти поля не переводятся: имя бренда и адрес одинаковые в обеих локалях.
+import site from '../data/site.json';
 ---
 <nav transition:persist="site-nav">
   <a data-cursor="open" href="/">Elkhovering.com</a>
-  <div class="nav-item">Currently design<br />Syrnik.dev</div>
-  <div class="nav-item">Based in Yerevan,<br />Republic of Armenia</div>
+
+  <div class="nav-item nav-status">
+    <span class="nav-status-prefix" data-i18n="nav.currently">Currently design</span>
+    <a
+      class="nav-status-project"
+      data-cursor="open"
+      href={site.currentProject.url}
+      target="_blank"
+      rel="noopener"
+    >{site.currentProject.name}</a>
+  </div>
+
+  <div class="nav-item" data-i18n="nav.location">Based in Yerevan,<br />Republic of Armenia</div>
+
   <a data-cursor="open" data-i18n="ui.works" href="/works">/works</a>
-  <a data-cursor="open" href="https://t.me/elkhovering">Contact me</a>
+  <a data-cursor="open" data-i18n="nav.contact" href={site.contact.telegram}>Contact me</a>
 </nav>
+
+<style>
+  /* Status-блок: префикс над ссылкой на проект.
+     Линк подчёркнут, чтобы читался как кликабельный, но размер совпадает с префиксом. */
+  .nav-status {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+  .nav-status-prefix {
+    display: block;
+  }
+  .nav-status-project {
+    display: inline-block;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+    /* родительский nav имеет mix-blend-mode: difference, цвет наследуем */
+    color: inherit;
+    transition: text-underline-offset 0.3s ease;
+  }
+  .nav-status-project:hover {
+    text-underline-offset: 6px;
+  }
+</style>

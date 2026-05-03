@@ -1,0 +1,278 @@
+# ─────────────────────────────────────────────────────────
+# Sveltia CMS — конфиг админки.
+# Подключается к репозиторию Elkhovering/elkhovering.com через GitHub OAuth.
+# Все правки идут как обычные коммиты в main → CI деплоит.
+#
+# Что можно редактировать:
+#   • Site config — текущий проект в шапке (имя/URL), контакты
+#   • Переводы — все строки UI на EN/RU (включая префикс «Currently design»)
+#   • Works — каждая работа: мета (год, роль, обложка) + текст кейса
+# ─────────────────────────────────────────────────────────
+
+backend:
+  name: github
+  repo: Elkhovering/elkhovering.com
+  branch: main
+
+# Sveltia держит свою OAuth-прокси на oauth.sveltia.app — кнопка «Login with
+# GitHub» работает из коробки без подъёма своего бэкенда.
+site_url: https://elkhovering.com
+
+# Загруженные через CMS картинки кладутся в /public/media/uploads.
+# В разметке они видны как /media/uploads/file.png.
+media_folder: public/media/uploads
+public_folder: /media/uploads
+
+# Стандартный «save → commit» (без редакторского workflow с пул-реквестами).
+publish_mode: simple
+
+# Локализация UI самой админки.
+locale: en
+
+collections:
+  # ─── Site config ───
+  - name: site
+    label: Конфигурация сайта
+    delete: false
+    files:
+      - name: site
+        label: Site
+        file: src/data/site.json
+        format: json
+        fields:
+          - label: Текущий проект (отображается в шапке)
+            name: currentProject
+            widget: object
+            fields:
+              - { label: Название, name: name, widget: string, hint: 'То, что показывается ссылкой — например, Syrnik.dev' }
+              - { label: URL, name: url, widget: string, hint: 'Куда ведёт клик — например, https://syrnik.dev' }
+          - label: Контакты
+            name: contact
+            widget: object
+            fields:
+              - { label: Telegram URL, name: telegram, widget: string }
+              - { label: Email, name: email, widget: string }
+
+  # ─── i18n переводы ───
+  - name: i18n
+    label: Переводы (UI-строки)
+    delete: false
+    files:
+      - name: en
+        label: English
+        file: public/i18n/en.json
+        format: json
+        fields:
+          - label: UI
+            name: ui
+            widget: object
+            collapsed: true
+            fields:
+              - { label: works, name: works, widget: string }
+              - { label: seeMore, name: seeMore, widget: string }
+              - { label: open, name: open, widget: string }
+              - { label: copy, name: copy, widget: string }
+              - { label: copied, name: copied, widget: string }
+              - { label: back, name: back, widget: string }
+              - { label: role, name: role, widget: string }
+              - { label: year, name: year, widget: string }
+              - { label: client, name: client, widget: string }
+              - { label: stack, name: stack, widget: string }
+              - { label: tags, name: tags, widget: string }
+              - { label: visit, name: visit, widget: string }
+              - { label: next, name: next, widget: string }
+              - { label: worksTitle, name: worksTitle, widget: string }
+              - { label: worksSubtitle, name: worksSubtitle, widget: string }
+              - { label: outroKicker, name: outroKicker, widget: string }
+              - { label: outroTitle, name: outroTitle, widget: string }
+              - { label: outroLede, name: outroLede, widget: text }
+              - { label: outroTelegram, name: outroTelegram, widget: string }
+              - { label: outroEmail, name: outroEmail, widget: string }
+              - { label: outroAllWorks, name: outroAllWorks, widget: string }
+              - { label: outroNext, name: outroNext, widget: string }
+          - label: Nav (шапка сайта)
+            name: nav
+            widget: object
+            fields:
+              - { label: 'Префикс перед текущим проектом', name: currently, widget: string, hint: 'Например: Currently design / Working on / Designing' }
+              - { label: Локация, name: location, widget: string, hint: 'Поддерживается <br /> для переноса строки' }
+              - { label: 'Кнопка контакта', name: contact, widget: string }
+          - label: Hero
+            name: hero
+            widget: object
+            collapsed: true
+            fields:
+              - { label: title, name: title, widget: string, hint: 'Поддерживается <br /> для переноса' }
+              - { label: tagline, name: tagline, widget: string }
+          - label: About
+            name: about
+            widget: object
+            collapsed: true
+            fields:
+              - { label: title, name: title, widget: string }
+              - { label: 'Параграф 1', name: p1, widget: text }
+              - { label: 'Параграф 2', name: p2, widget: text }
+              - { label: blend, name: blend, widget: string }
+              - { label: desc1, name: desc1, widget: text }
+              - { label: desc2, name: desc2, widget: text }
+          - label: Services
+            name: services
+            widget: object
+            collapsed: true
+            fields:
+              - { label: title, name: title, widget: string }
+              - { label: 'Услуга 1', name: s1, widget: string }
+              - { label: 'Услуга 2', name: s2, widget: string }
+              - { label: 'Услуга 3', name: s3, widget: string }
+              - { label: 'Услуга 4', name: s4, widget: string }
+              - { label: 'Услуга 5', name: s5, widget: string }
+              - { label: 'Услуга 6', name: s6, widget: string }
+          - label: Contacts
+            name: contacts
+            widget: object
+            collapsed: true
+            fields:
+              - { label: title, name: title, widget: string }
+              - { label: q1, name: q1, widget: string }
+              - { label: q2, name: q2, widget: string }
+              - { label: or, name: or, widget: string }
+      - name: ru
+        label: Русский
+        file: public/i18n/ru.json
+        format: json
+        # Дублируем ту же схему — ключи идентичны, переводы свои.
+        fields:
+          - label: UI
+            name: ui
+            widget: object
+            collapsed: true
+            fields:
+              - { label: works, name: works, widget: string }
+              - { label: seeMore, name: seeMore, widget: string }
+              - { label: open, name: open, widget: string }
+              - { label: copy, name: copy, widget: string }
+              - { label: copied, name: copied, widget: string }
+              - { label: back, name: back, widget: string }
+              - { label: role, name: role, widget: string }
+              - { label: year, name: year, widget: string }
+              - { label: client, name: client, widget: string }
+              - { label: stack, name: stack, widget: string }
+              - { label: tags, name: tags, widget: string }
+              - { label: visit, name: visit, widget: string }
+              - { label: next, name: next, widget: string }
+              - { label: worksTitle, name: worksTitle, widget: string }
+              - { label: worksSubtitle, name: worksSubtitle, widget: string }
+              - { label: outroKicker, name: outroKicker, widget: string }
+              - { label: outroTitle, name: outroTitle, widget: string }
+              - { label: outroLede, name: outroLede, widget: text }
+              - { label: outroTelegram, name: outroTelegram, widget: string }
+              - { label: outroEmail, name: outroEmail, widget: string }
+              - { label: outroAllWorks, name: outroAllWorks, widget: string }
+              - { label: outroNext, name: outroNext, widget: string }
+          - label: Nav (шапка сайта)
+            name: nav
+            widget: object
+            fields:
+              - { label: 'Префикс перед текущим проектом', name: currently, widget: string }
+              - { label: Локация, name: location, widget: string, hint: 'Поддерживается <br /> для переноса строки' }
+              - { label: 'Кнопка контакта', name: contact, widget: string }
+          - label: Hero
+            name: hero
+            widget: object
+            collapsed: true
+            fields:
+              - { label: title, name: title, widget: string }
+              - { label: tagline, name: tagline, widget: string }
+          - label: About
+            name: about
+            widget: object
+            collapsed: true
+            fields:
+              - { label: title, name: title, widget: string }
+              - { label: 'Параграф 1', name: p1, widget: text }
+              - { label: 'Параграф 2', name: p2, widget: text }
+              - { label: blend, name: blend, widget: string }
+              - { label: desc1, name: desc1, widget: text }
+              - { label: desc2, name: desc2, widget: text }
+          - label: Services
+            name: services
+            widget: object
+            collapsed: true
+            fields:
+              - { label: title, name: title, widget: string }
+              - { label: 'Услуга 1', name: s1, widget: string }
+              - { label: 'Услуга 2', name: s2, widget: string }
+              - { label: 'Услуга 3', name: s3, widget: string }
+              - { label: 'Услуга 4', name: s4, widget: string }
+              - { label: 'Услуга 5', name: s5, widget: string }
+              - { label: 'Услуга 6', name: s6, widget: string }
+          - label: Contacts
+            name: contacts
+            widget: object
+            collapsed: true
+            fields:
+              - { label: title, name: title, widget: string }
+              - { label: q1, name: q1, widget: string }
+              - { label: q2, name: q2, widget: string }
+              - { label: or, name: or, widget: string }
+          - label: '(legacy) projects'
+            name: projects
+            widget: object
+            collapsed: true
+            required: false
+            fields:
+              - { label: dump, name: dump, widget: text, required: false }
+
+  # ─── Works (EN) ───
+  - name: works-en
+    label: 'Works · English'
+    label_singular: 'Work (EN)'
+    folder: src/content/works/en
+    extension: md
+    format: frontmatter
+    create: true
+    delete: true
+    slug: '{{fields.slug}}'
+    summary: '{{title}} — {{year}}'
+    sortable_fields: ['year', 'title']
+    fields:
+      - { label: 'Slug (URL-имя, без пробелов)', name: slug, widget: string, hint: 'Должно совпадать с именем файла — например, banana-bank' }
+      - { label: Заголовок, name: title, widget: string }
+      - { label: 'Краткое описание', name: summary, widget: text }
+      - { label: Год, name: year, widget: number, value_type: int, min: 2000, max: 2100 }
+      - { label: 'Роль (Designer, Frontend и т.п.)', name: role, widget: string }
+      - { label: 'URL живого сайта', name: url, widget: string, required: false }
+      - { label: Клиент, name: client, widget: string, required: false }
+      - { label: 'Стек (через запятую)', name: stack, widget: list, required: false, hint: 'HTML, CSS, JS, GSAP — пишется как отдельные элементы' }
+      - { label: 'Теги (для блока Skills)', name: tags, widget: list, required: false }
+      - { label: Обложка, name: cover, widget: image, hint: 'Главное изображение карточки. Рекомендуется ~1200×800.' }
+      - { label: Галерея, name: gallery, widget: list, required: false, field: { label: Image, name: image, widget: image } }
+      - { label: 'Черновик (не публиковать)', name: draft, widget: boolean, required: false, default: false }
+      - { label: Контент, name: body, widget: markdown, required: false, hint: 'Текст кейса. Можно использовать заголовки ##, цитаты >, списки.' }
+
+  # ─── Works (RU) ───
+  - name: works-ru
+    label: 'Works · Русский'
+    label_singular: 'Работа (RU)'
+    folder: src/content/works/ru
+    extension: md
+    format: frontmatter
+    create: true
+    delete: true
+    slug: '{{fields.slug}}'
+    summary: '{{title}} — {{year}}'
+    sortable_fields: ['year', 'title']
+    fields:
+      - { label: 'Slug (должен совпадать с EN-версией)', name: slug, widget: string }
+      - { label: Заголовок, name: title, widget: string }
+      - { label: 'Краткое описание', name: summary, widget: text }
+      - { label: Год, name: year, widget: number, value_type: int, min: 2000, max: 2100 }
+      - { label: Роль, name: role, widget: string }
+      - { label: 'URL живого сайта', name: url, widget: string, required: false }
+      - { label: Клиент, name: client, widget: string, required: false }
+      - { label: Стек, name: stack, widget: list, required: false }
+      - { label: Теги, name: tags, widget: list, required: false }
+      - { label: Обложка, name: cover, widget: image }
+      - { label: Галерея, name: gallery, widget: list, required: false, field: { label: Image, name: image, widget: image } }
+      - { label: 'Черновик', name: draft, widget: boolean, required: false, default: false }
+      - { label: Контент, name: body, widget: markdown, required: false }

@@ -23,6 +23,11 @@
     "outroAllWorks": "All works",
     "outroNext": "Next project"
   },
+  "nav": {
+    "currently": "Currently design",
+    "location": "Based in Yerevan,<br />Republic of Armenia",
+    "contact": "Contact me"
+  },
   "hero": {
     "title": "One <br /> person",
     "tagline": "The art director you hire before you need a team"
@@ -49,52 +54,5 @@
     "q1": "want to work <br /> together?",
     "q2": "send me <br /> a message",
     "or": "or"
-  },
-  "projects": {
-    "banana-bank": {
-      "title": "Banana Bank",
-      "desc": "Token launch landing built for virality",
-      "date": "2020"
-    },
-    "nuef": {
-      "title": "NUEF",
-      "desc": "Music label landing with cinematic transitions",
-      "date": "2021"
-    },
-    "chainproxy": {
-      "title": "ChainProxy",
-      "desc": "Proxy service — landing and full user platform",
-      "date": "2023"
-    },
-    "quicksms": {
-      "title": "QuickSMS",
-      "desc": "OTP number marketplace for SMS verification",
-      "date": "2022"
-    },
-    "xmrcrash": {
-      "title": "XMR Crash",
-      "desc": "Crash casino running on Monero",
-      "date": "2021"
-    },
-    "omikami": {
-      "title": "Omikami",
-      "desc": "3D token launch landing",
-      "date": "2025"
-    },
-    "syrnik": {
-      "title": "SYRNIK.DEV",
-      "desc": "Game development studio website",
-      "date": "2025"
-    },
-    "blackhole": {
-      "title": "Blackhole",
-      "desc": "Bitcoin wallet and roulette in a space setting",
-      "date": "2018"
-    },
-    "dotaboom": {
-      "title": "Dotaboom",
-      "desc": "BetBoom × The International 2022 — online battlepass",
-      "date": "2022"
-    }
   }
 }

@@ -23,6 +23,11 @@
     "outroAllWorks": "Все работы",
     "outroNext": "Следующий проект"
   },
+  "nav": {
+    "currently": "Сейчас делаю",
+    "location": "Живу в Ереване,<br />Республика Армения",
+    "contact": "Связаться"
+  },
   "hero": {
     "title": "Один <br /> человек",
     "tagline": "Арт-директор, которого нанимают раньше команды"
@@ -49,52 +54,5 @@
     "q1": "хотите <br /> сотрудничать?",
     "q2": "напишите <br /> мне",
     "or": "или"
-  },
-  "projects": {
-    "banana-bank": {
-      "title": "Banana Bank",
-      "desc": "Лендинг запуска токена — сделан под охват",
-      "date": "2020"
-    },
-    "nuef": {
-      "title": "NUEF",
-      "desc": "Лендинг лейбла с кинематографичными переходами",
-      "date": "2021"
-    },
-    "chainproxy": {
-      "title": "ChainProxy",
-      "desc": "Прокси-сервис — лендинг и полноценная платформа",
-      "date": "2023"
-    },
-    "quicksms": {
-      "title": "QuickSMS",
-      "desc": "Маркетплейс номеров для SMS-верификации",
-      "date": "2022"
-    },
-    "xmrcrash": {
-      "title": "XMR Crash",
-      "desc": "Краш-казино на Monero",
-      "date": "2021"
-    },
-    "omikami": {
-      "title": "Omikami",
-      "desc": "3D-лендинг для запуска токена",
-      "date": "2025"
-    },
-    "syrnik": {
-      "title": "SYRNIK.DEV",
-      "desc": "Сайт студии игровой разработки",
-      "date": "2025"
-    },
-    "blackhole": {
-      "title": "Blackhole",
-      "desc": "Биткоин-кошелёк и рулетка в космической теме",
-      "date": "2018"
-    },
-    "dotaboom": {
-      "title": "Dotaboom",
-      "desc": "BetBoom × The International 2022 — онлайн-батлпасс",
-      "date": "2022"
-    }
   }
 }

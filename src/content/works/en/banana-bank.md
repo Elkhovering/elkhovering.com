@@ -12,4 +12,4 @@ cover: /media/projects/banana-bank/main.png
 gallery: []
 ---
 
-{/* Narrative lives in src/components/cases/BananaBank.astro — this file carries metadata only. */}
+<!-- Narrative lives in src/components/cases/BananaBank.astro — this file carries metadata only. -->
