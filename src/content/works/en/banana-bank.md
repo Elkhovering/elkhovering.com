@@ -10,6 +10,7 @@ stack: [HTML, CSS, JS, GSAP]
 tags: [designer, developer, visionary]
 cover: /media/projects/banana-bank/main.png
 gallery: []
+draft: true
 ---
 
 <!-- Narrative lives in src/components/cases/BananaBank.astro — this file carries metadata only. -->

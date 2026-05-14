@@ -10,6 +10,7 @@ stack: [HTML, CSS, JS, GSAP]
 tags: [дизайнер, разработчик, визионер]
 cover: /media/projects/banana-bank/main.png
 gallery: []
+draft: true
 ---
 
 <!-- Нарратив живёт в src/components/cases/BananaBank.astro — этот файл держит только мета. -->

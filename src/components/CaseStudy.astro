@@ -27,10 +27,11 @@ const gallery = entryEn.data.gallery && entryEn.data.gallery.length
   ? entryEn.data.gallery
   : (entryRu.data.gallery || []);
 
-// Siblings для «next project» — только те slug, у которых есть обе локали.
+// Siblings для «next project» — только опубликованные slug, у которых есть обе локали.
+// Фильтр !draft обязателен: иначе ссылка «Next» может вести на скрытый кейс (404).
 const all = await getCollection('works');
-const enBySlug = new Map(all.filter((e: any) => e.id.startsWith('en/')).map((e: any) => [e.data.slug, e]));
-const ruBySlug = new Map(all.filter((e: any) => e.id.startsWith('ru/')).map((e: any) => [e.data.slug, e]));
+const enBySlug = new Map(all.filter((e: any) => e.id.startsWith('en/') && !e.data.draft).map((e: any) => [e.data.slug, e]));
+const ruBySlug = new Map(all.filter((e: any) => e.id.startsWith('ru/') && !e.data.draft).map((e: any) => [e.data.slug, e]));
 
 const idx = worksOrderByYear.indexOf(slug);
 let nextSlug: string | null = null;

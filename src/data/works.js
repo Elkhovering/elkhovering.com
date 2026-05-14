@@ -5,14 +5,16 @@
 // Здесь — только то, что нужно галерее на главной (и что не переводится).
 
 export const works = [
-  {
-    id: 'banana-bank',
-    image: '/media/projects/banana-bank/main.png',
-    layer: 'back',
-    col: 5,
-    row: 1,
-    rellaxSpeed: -1.25,
-  },
+  // banana-bank скрыт из публичного доступа (draft: true в content/works/{en,ru}/banana-bank.md).
+  // Чтобы вернуть на главную — раскомментируй блок ниже и убери draft из обоих .md.
+  // {
+  //   id: 'banana-bank',
+  //   image: '/media/projects/banana-bank/main.png',
+  //   layer: 'back',
+  //   col: 5,
+  //   row: 1,
+  //   rellaxSpeed: -1.25,
+  // },
   {
     id: 'syrnik',
     image: '/media/projects/syrnik/main.png',
@@ -90,6 +92,6 @@ export const worksOrderByYear = [
   'dotaboom',    // 2022
   'nuef',        // 2021
   'xmrcrash',    // 2021
-  'banana-bank', // 2020
+  'banana-bank', // 2020 — скрыт (draft); порядок сохранён для лёгкого возврата.
   'blackhole',   // 2018
 ];

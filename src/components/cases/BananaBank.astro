@@ -20,11 +20,11 @@ const year = entryEn.data.year;
 const url = entryEn.data.url;
 
 // Next-project: пробегаем worksOrderByYear от текущего slug по кругу,
-// берём первый, у которого есть обе локали.
+// берём первый опубликованный, у которого есть обе локали (!draft — иначе 404).
 const slug = entryEn.data.slug;
 const all = await getCollection('works');
-const enBySlug = new Map(all.filter((e: any) => e.id.startsWith('en/')).map((e: any) => [e.data.slug, e]));
-const ruBySlug = new Map(all.filter((e: any) => e.id.startsWith('ru/')).map((e: any) => [e.data.slug, e]));
+const enBySlug = new Map(all.filter((e: any) => e.id.startsWith('en/') && !e.data.draft).map((e: any) => [e.data.slug, e]));
+const ruBySlug = new Map(all.filter((e: any) => e.id.startsWith('ru/') && !e.data.draft).map((e: any) => [e.data.slug, e]));
 const idx = worksOrderByYear.indexOf(slug);
 let nextSlug: string | null = null;
 if (idx !== -1) {
