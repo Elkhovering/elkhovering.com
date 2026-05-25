@@ -9,8 +9,13 @@
 //   - На astro:before-swap ставим data-lang на входящий документ ДО paint,
 //     иначе жёстко прописанный в Layout data-lang="en" перетирает выбор.
 
-import Lenis from '@studio-freight/lenis';
 import Rellax from 'rellax';
+
+// Плавный wheel-скролл реализован отдельной либой SmoothScroll.js
+// (vendored: /vendor/SmoothScroll.min.js, подключается в Layout.astro).
+// Это лёгкая обёртка над window.scrollBy — НЕ держит своё состояние скролла,
+// поэтому средняя кнопка мыши (autoscroll), drag по скроллбару, anchor-jump
+// и history scroll restoration работают нативно без конфликтов.
 
 // ──────────────── i18n ────────────────
 
@@ -45,27 +50,11 @@ function markActiveLang() {
 
 // ──────────────── PERSISTENT (один раз за сессию) ────────────────
 
-let lenisInstance = null;
+let persistentReady = false;
 
 function persistentInit() {
-  if (lenisInstance) return;
-
-  // Ручное управление scroll restoration — ClientRouter сам помнит позиции
-  // через history.state. Дефолтное browser-restore конфликтует с Lenis.
-  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-
-  // Lenis Smooth Scroll
-  lenisInstance = new Lenis({
-    duration: 4.4,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -20 * t)),
-    smoothWheel: true,
-    smoothTouch: false,
-  });
-  const raf = (time) => {
-    lenisInstance.raf(time);
-    requestAnimationFrame(raf);
-  };
-  requestAnimationFrame(raf);
+  if (persistentReady) return;
+  persistentReady = true;
 
   // Кастомный курсор — делегирование на весь документ
   const cursor = document.getElementById('customCursor');
@@ -231,28 +220,15 @@ function pageInit() {
 
 // ──────────────── Жизненный цикл Astro View Transitions ────────────────
 
-// Останавливаем Lenis ДО навигации. Иначе momentum-скролл конфликтует
-// с View Transition: URL не обновляется через pushState, а обратная кнопка
-// ведёт «через голову» (на предыдущий URL минус один).
-document.addEventListener('astro:before-preparation', () => {
-  lenisInstance?.stop();
-});
-
 // КРИТИЧНО: выставляем data-lang на новый документ ДО того, как он попадёт в DOM.
 // Иначе жёсткий <html data-lang="en"> из Layout на долю секунды покажет EN-блок.
 document.addEventListener('astro:before-swap', (e) => {
   e.newDocument.documentElement.dataset.lang = currentLang;
 });
 
-// После свапа — скроллим Lenis в начало новой страницы (без анимации) и
-// снова запускаем. window.scrollTo(0,0) в этот момент уже отработал ClientRouter,
-// но внутренний target Lenis надо синхронизировать.
-document.addEventListener('astro:after-swap', () => {
-  if (lenisInstance) {
-    lenisInstance.scrollTo(0, { immediate: true, force: true });
-    lenisInstance.start();
-  }
-});
+// SmoothScroll не держит свой scroll-стейт — window.scrollTo(0,0), который
+// делает ClientRouter после свапа, работает нативно и ничего синхронизировать
+// не нужно. История скролла тоже браузерная: history.scrollRestoration на дефолте.
 
 // Первая загрузка и любая навигация через ClientRouter
 document.addEventListener('astro:page-load', async () => {

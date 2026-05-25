@@ -48,6 +48,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
       })();
     </script>
     <ClientRouter />
+
+    {/* Плавный wheel-скролл. Балаж Галамбоси SmoothScroll: лёгкий wheel→scrollBy
+        с easing, без своего scroll-стейта. Не ломает middle-click autoscroll,
+        scrollbar-drag, scrollIntoView и history.scrollRestoration. */}
+    <script is:inline src="/vendor/SmoothScroll.min.js"></script>
   </head>
   <body>
     <Nav />
