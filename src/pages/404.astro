@@ -1,0 +1,119 @@
+---
+// Страница 404. Astro собирает её в dist/404.html, на который ссылается
+// error_page в docker/nginx.conf — без этого файла nginx отдавал бы свою
+// стандартную страницу, а лог засорялся бы «open() /404.html failed».
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="404 — Elkhovering" description="Page not found">
+  <section class="nf">
+    <span class="nf-code" aria-hidden="true">404</span>
+
+    <h1 class="nf-title">
+      <span data-case-lang="en">This page moved,<br />or never existed.</span>
+      <span data-case-lang="ru">Страница переехала<br />или её никогда не было.</span>
+    </h1>
+
+    <p class="nf-lede">
+      <span data-case-lang="en">Both are fixable. The work is one click away.</span>
+      <span data-case-lang="ru">И то и другое поправимо. Работы — в одном клике.</span>
+    </p>
+
+    <nav class="nf-links">
+      <a class="nf-link" data-cursor="open" href="/">
+        <span class="nf-arrow" aria-hidden="true">←</span>
+        <span data-case-lang="en">Home</span>
+        <span data-case-lang="ru">На главную</span>
+      </a>
+      <a class="nf-link" data-cursor="see-more" href="/works">
+        <span data-case-lang="en">All works</span>
+        <span data-case-lang="ru">Все работы</span>
+        <span class="nf-arrow" aria-hidden="true">→</span>
+      </a>
+    </nav>
+  </section>
+</Layout>
+
+<style>
+  .nf {
+    position: relative;
+    z-index: 100;
+    background: var(--base);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 12rem 6.25rem 6rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    --nf-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Тот же outline-приём, что и в заголовке /works: цифра работает как
+     фактура, а не как сообщение — сообщение несёт заголовок. */
+  .nf-code {
+    font-family: bold;
+    font-size: clamp(120px, 26vw, 360px);
+    line-height: 0.8;
+    letter-spacing: -0.04em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--text);
+    user-select: none;
+  }
+
+  .nf-title {
+    font-family: medium;
+    font-size: clamp(28px, 4vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    margin: 3rem 0 0;
+  }
+
+  .nf-lede {
+    font-family: roman;
+    font-size: clamp(16px, 1.4vw, 19px);
+    line-height: 1.45;
+    max-width: 42ch;
+    margin: 1.5rem 0 0;
+  }
+
+  .nf-links {
+    display: flex;
+    gap: 3rem;
+    flex-wrap: wrap;
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    width: 100%;
+  }
+
+  .nf-link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.6em;
+    font-family: medium;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: gap 0.5s var(--nf-ease), opacity 0.2s ease;
+  }
+  .nf-link:hover {
+    opacity: 1;
+    gap: 1em;
+    text-decoration: none;
+  }
+  .nf-arrow {
+    display: inline-block;
+    transition: transform 0.5s var(--nf-ease);
+  }
+
+  @media (max-width: 1024px) {
+    .nf { padding: 10rem 2.5rem 4rem; }
+  }
+  @media (max-width: 720px) {
+    .nf { padding: 8rem 1.25rem 3rem; }
+    .nf-links { gap: 1.5rem; flex-direction: column; margin-top: 3rem; }
+  }
+</style>

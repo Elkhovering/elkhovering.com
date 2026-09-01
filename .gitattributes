@@ -1,0 +1,25 @@
+# Normalize on commit, check out with LF everywhere.
+#
+# Development happens on Windows, but everything here that executes or is
+# parsed does so on Linux. A shell script or config that arrives with CRLF
+# fails in ways that read as a Docker problem and are not — the server guide
+# records exactly that: `export: LC_ALL: bad variable name`.
+* text=auto eol=lf
+
+# Belt and braces for the files that actually run on the server.
+Dockerfile text eol=lf
+*.sh       text eol=lf
+*.conf     text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+
+# Never touch these.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.xlsx  binary
+*.pdf   binary

@@ -1,0 +1,42 @@
+# Patterns match paths relative to the build context root, so a bare name like
+# `index.html` matches ONLY the one at the root — not public/admin/index.html,
+# which the site genuinely needs. Do not add `*.md` here: it would look like it
+# excludes documentation and would in fact strip src/content/works/**, giving a
+# green build that serves a site with no case studies.
+
+# Build inputs that must never be inherited from the host
+node_modules
+dist
+.astro
+
+# VCS, CI and editor state
+.git
+.gitignore
+.github
+.vscode
+.idea
+.claude
+
+# Secrets. None exist today, but `COPY . .` would bake one into a layer that
+# gets pushed to a public registry.
+.env
+.env.*
+*.pem
+*.key
+
+# Notes and scratch
+docs
+BACKLOG.xlsx
+
+# The pre-Astro vanilla site, still tracked at the repo root and not part of
+# the build. Several of these are OneDrive cloud-only placeholders, which would
+# stall the build while Windows rehydrates them from the network.
+index.html
+nav.html
+works.html
+script.js
+style.css
+mobile.css
+en.json
+ru.json
+logo-06.png

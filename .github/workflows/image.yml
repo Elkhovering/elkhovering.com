@@ -1,0 +1,237 @@
+name: Build and push image
+
+# Builds the site into a container and publishes it to GHCR. It deliberately
+# stops there: the server is managed by Oracelk, which requires a human to
+# approve every change, so deployment is `set_project_image` + `deploy_project`
+# with the tag this workflow prints in its summary.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never let two pushes race to publish the same tags.
+concurrency:
+  group: ghcr-${{ github.ref }}
+  cancel-in-progress: true
+
+# The whole permission set this needs. `packages: write` is what lets the
+# built-in GITHUB_TOKEN push to ghcr.io — no PAT is involved anywhere.
+# This block is load-bearing: the repository's default workflow permission is
+# "read", and without it the push fails with a 403 from the registry.
+permissions:
+  contents: read
+  packages: write
+
+env:
+  # Hardcoded lowercase on purpose. github.repository is
+  # "Elkhovering/elkhovering.com" — ghcr.io rejects the capital E outright, and
+  # the dot has to become a dash. Do not "improve" this into an expression.
+  IMAGE: ghcr.io/elkhovering/elkhovering-com
+  PLATFORM: linux/amd64
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  publish:
+    name: build, smoke-test, push
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive tags and labels
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE }}
+          # sha outranks latest so that steps.meta.outputs.version — the string
+          # printed in the summary and pasted into Oracelk — is the short sha
+          # and not the literal word "latest".
+          tags: |
+            type=sha,format=short,prefix=,priority=300
+            type=raw,value=latest,priority=200,enable={{is_default_branch}}
+          labels: |
+            org.opencontainers.image.title=elkhovering.com
+            org.opencontainers.image.description=Astro static site served by nginx on :8000
+            org.opencontainers.image.url=https://elkhovering.com
+
+      # Build into the local daemon first. Nothing is published yet.
+      - name: Build image (no push)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: ${{ env.PLATFORM }}
+          push: false
+          load: true
+          tags: elkhovering-com:candidate
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # A broken image must never reach the registry, because the server will
+      # happily pull it. Everything here fails at runtime only, which is
+      # exactly the class of fault a build cannot catch.
+      - name: Smoke-test the container
+        run: |
+          set -euo pipefail
+
+          # Rename a case study and this list must change with it.
+          MUST_200=(
+            /
+            /works/
+            /works/syrnik/
+            /admin/
+            /i18n/en.json
+            /i18n/ru.json
+            /vendor/SmoothScroll.min.js
+            /favicon-08.svg
+            /ru/
+            /healthz
+          )
+
+          docker run -d --name candidate -p 127.0.0.1:8000:8000 elkhovering-com:candidate
+
+          echo "Waiting for :8000 ..."
+          for i in $(seq 1 30); do
+            if curl -fsS -o /dev/null http://127.0.0.1:8000/healthz; then
+              echo "up after ${i}s"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "::error::container never answered on :8000 — is nginx still listening on 80?"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          fail=0
+          for path in "${MUST_200[@]}"; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8000${path}" || true)
+            if [ "$code" = "200" ]; then
+              echo "  ok    200  ${path}"
+            else
+              echo "  FAIL  ${code:-conn}  ${path} (expected 200)"
+              fail=1
+            fi
+          done
+
+          # An extension-less deep link must be served directly, NOT redirected.
+          # A 301 here means try_files is ordered wrong; behind the tunnel that
+          # redirect would point at a dead http://host:8000/... URL.
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/works/syrnik || true)
+          if [ "$code" = "200" ]; then
+            echo "  ok    200  /works/syrnik (no trailing slash, served directly)"
+          else
+            echo "  FAIL  ${code:-conn}  /works/syrnik — expected 200, not a redirect"
+            fail=1
+          fi
+
+          # A missing path must 404 and must render OUR 404 page, not nginx's
+          # default and not index.html. Catches both a bad error_page and any
+          # future SPA-style fallback.
+          body=$(curl -s -w '\n%{http_code}' http://127.0.0.1:8000/__no_such_page__ || true)
+          code=$(printf '%s' "$body" | tail -n1)
+          if [ "$code" = "404" ] && printf '%s' "$body" | grep -q 'nf-code'; then
+            echo "  ok    404  /__no_such_page__ (custom 404 page)"
+          else
+            echo "  FAIL  ${code:-conn}  /__no_such_page__ — expected our 404.html"
+            fail=1
+          fi
+
+          # The homepage must be real HTML, not the artifact of a bad COPY.
+          if curl -fsS http://127.0.0.1:8000/ | grep -qi '<html'; then
+            echo "  ok    body /  contains <html"
+          else
+            echo "  FAIL  body /  no <html — did dist/ get copied?"
+            fail=1
+          fi
+
+          # Media lives in its own image layer and is served by THIS container,
+          # not by the platform nginx. If the split ever breaks, it breaks here.
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/media/projects/syrnik/main.png || true)
+          if [ "$code" = "200" ]; then
+            echo "  ok    200  /media/projects/syrnik/main.png"
+          else
+            echo "  FAIL  ${code:-conn}  /media/... — the media layer is missing"
+            fail=1
+          fi
+
+          IMAGE_SIZE=$(docker image inspect elkhovering-com:candidate --format '{{.Size}}')
+          echo "IMAGE_SIZE_MB=$(( IMAGE_SIZE / 1000000 ))" >> "$GITHUB_ENV"
+
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::smoke test failed — nothing was pushed"
+            exit 1
+          fi
+          echo "Smoke test passed."
+
+      - name: Container logs (on failure)
+        if: failure()
+        run: docker logs candidate || true
+
+      - name: Stop test container
+        if: always()
+        run: docker rm -f candidate || true
+
+      # Every layer is already in the GHA cache, so this exports and uploads
+      # rather than rebuilding.
+      - name: Push image
+        id: push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: ${{ env.PLATFORM }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+          cache-from: type=gha
+
+      - name: Job summary
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          set -euo pipefail
+          {
+            echo "## Image published"
+            echo
+            echo "Deploy it by **sha, not \`latest\`** — Oracelk runs \`docker compose up -d\`"
+            echo "without \`--pull\`, so a moving tag already present on the host is never"
+            echo "re-fetched and the deploy would silently keep serving the old image."
+            echo
+            echo '```'
+            echo "${IMAGE}:${VERSION}"
+            echo '```'
+            echo
+            echo "| field | value |"
+            echo "| --- | --- |"
+            echo "| repository | ${IMAGE} |"
+            echo "| tags | $(echo "$TAGS" | tr '\n' ' ') |"
+            echo "| digest | ${DIGEST} |"
+            echo "| commit | ${GITHUB_SHA} |"
+            echo "| platform | ${PLATFORM} |"
+            echo "| image size | ${IMAGE_SIZE_MB:-?} MB |"
+            echo "| serves on | container port 8000 |"
+            echo "| oracelk project | elkhovering (port 8104) |"
+            echo "| smoke test | passed before push |"
+          } >> "$GITHUB_STEP_SUMMARY"
