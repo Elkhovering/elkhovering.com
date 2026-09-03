@@ -24,9 +24,8 @@ dist
 *.pem
 *.key
 
-# Notes and scratch
+# Documentation and scratch
 docs
-BACKLOG.xlsx
 
 # The pre-Astro vanilla site, still tracked at the repo root and not part of
 # the build. Several of these are OneDrive cloud-only placeholders, which would
