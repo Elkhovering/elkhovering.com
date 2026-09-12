@@ -15,7 +15,6 @@
 |---|---|---|
 | **B-24** 🔴 | CI не может писать в пакет ghcr | Пакет создан приватным и не привязан к репозиторию, потому что первый образ залит руками. `GITHUB_TOKEN` в такой писать не может. Открыть [настройки пакета](https://github.com/users/Elkhovering/packages/container/elkhovering-com/settings) → *Danger Zone* → удалить пакет, затем перезапустить workflow: он пересоздаст его привязанным и публичным. Либо *Manage Actions access* → добавить репозиторий с ролью **Write**. |
 | **B-25** 🔴 | Секреты мёртвого хостинга живы | В репозитории висят `SSH_PRIVATE_KEY`, `SSH_PASSPHRASE`, `SSH_USER`, `FTP_HOST`, `FTP_USERNAME`, `FTP_PASSWORD`. Новый workflow не использует ни один. Удалить из GitHub **и отозвать на стороне Namecheap** — живой приватный ключ и FTP-пароль от отключённого аккаунта это риск. |
-| **B-20** 🔴 | Апекс `elkhovering.com` закрыт в Oracelk | Поставить галочку *include the apex* для зоны в настройках Oracelk. После этого я публикую; следом прилетит `DNS_RECORD_FOREIGN` — подтвердить перенаправление со старой `A`-записи. |
 | **B-21** 🟡 | Почта на своём домене | Включить iCloud+ Custom Email Domain, прописать MX/SPF/DKIM в Cloudflare, отключить Email Routing. Подробности в [plan.md](plan.md#почта). |
 
 ---
@@ -52,7 +51,8 @@
 
 | ID | Задача | Итог |
 |---|---|---|
-| **B-04** | Хедлайн под новое позиционирование | H1 → «Creative director», подзаголовок → «The art director you hire before you need a team». |
+| **B-20** | Переезд на свой сервер | Апекс открыт, `elkhovering.com` опубликован через туннель Oracelk, сайт доступен публично. |
+| **B-04** | Хедлайн под новое позиционирование | H1 → «Creative Developer» / «Креативный разработчик» (2026-09-12), подзаголовок → «The art director you hire before you need a team». Фраза «one person» осталась в About и в meta-описании — там она про модель работы, а не про должность. |
 | **B-05** | About как манифест | Переписан по CV: стык IT/продукта/digital, 300+ проектов, «вхожу в хаос — оставляю платформу». Личное: экономические стратегии, садоводство, гейм-дизайн в Syrnik.dev. |
 | **B-13** | Схема данных проекта | `src/content.config.ts`: slug/title/summary/year/role/url/client/stack/tags/cover/gallery/draft. Layout-мета (col/row/rellax/layer) осталась в `src/data/works.js` — это до сих пор второй источник правды, см. заметку в plan.md. |
 | **B-18** | Единая стратегия i18n | Клиентская, через `html[data-lang]`. EN и RU сосуществуют в каждой странице, CSS прячет неактивную локаль. Инлайновый скрипт в `<head>` ставит язык до первой отрисовки — нет мигания. Старые `/ru/` пути редиректятся. |
