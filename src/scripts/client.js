@@ -156,7 +156,9 @@ function initSkew() {
 
 function initWorkHovers() {
   const hoverBackground = document.querySelector('.hover-background');
-  const elk = document.querySelector('.elk-stage');
+  // Обложка ложится на тело 3D-лося. Может ли сцена её показать (загружена ли,
+  // есть ли у устройства настоящий курсор), решает сама сцена — src/scripts/elk-scene.js.
+  const coverElk = (image) => window.dispatchEvent(new CustomEvent('elk:cover', { detail: { image } }));
   const overlay = document.getElementById('projectOverlay');
   const titleEl = document.getElementById('projectTitle');
   const descEl = document.getElementById('projectDesc');
@@ -170,7 +172,7 @@ function initWorkHovers() {
         hoverBackground.style.opacity = '1';
       }
       images.forEach((o) => { if (o !== img) o.classList.add('faded'); });
-      elk?.classList.add('elk-faded');
+      coverElk(img);
 
       // Тексты рендерит Works.astro из content collection — в обеих локалях.
       const lang = currentLang === 'ru' ? 'Ru' : 'En';
@@ -186,7 +188,7 @@ function initWorkHovers() {
     img.addEventListener('mouseleave', () => {
       if (hoverBackground) hoverBackground.style.opacity = '0';
       images.forEach((o) => o.classList.remove('faded'));
-      elk?.classList.remove('elk-faded');
+      coverElk(null);
       if (overlay) overlay.style.opacity = '0';
     });
   });

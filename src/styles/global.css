@@ -83,10 +83,6 @@ html {
   opacity: 1;
 }
 
-.elk-faded {
-  mix-blend-mode: overlay;
-}
-
 h1,
 h2,
 h3,

@@ -21,8 +21,11 @@ import {
   PerspectiveCamera,
   Scene,
   ShaderMaterial,
+  Texture,
   TextureLoader,
+  Vector2,
   Vector3,
+  Vector4,
   WebGLRenderer,
 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -107,10 +110,40 @@ const LIGHT_MIX = 0.6;
 const BLEND = { screen: 2, overlay: 3 };
 
 const MATERIALS = {
-  body: { base: [1, 1, 1], matcap: 'body', blend: BLEND.overlay },
-  legs: { base: [0, 0, 0], matcap: 'dark', blend: BLEND.screen },
-  horns: { base: [0, 0, 0], matcap: 'dark', blend: BLEND.screen },
+  body: { base: [1, 1, 1], matcap: 'body', blend: BLEND.overlay, cover: 'matcap' },
+  legs: { base: [0, 0, 0], matcap: 'dark', blend: BLEND.screen, cover: 'backdrop' },
+  horns: { base: [0, 0, 0], matcap: 'dark', blend: BLEND.screen, cover: 'backdrop' },
 };
+
+// ─────────────────────────── Обложка проекта ───────────────────────────
+
+// При наведении на работу на главной лось принимает её обложку: страница шлёт
+// `elk:cover { image }`.
+//
+// Тело: обложка работает как matcap — цвет грани берётся из картинки по направлению
+// нормали — и лежит под светом и matcap тела вместо белой основы. Нормали у модели
+// плоские, поэтому грань получает цвет целиком: растяжек нет, тело читается
+// гранёным камнем в цветах проекта. Выбрано вживую из пяти вариантов: проекция
+// обложки из камеры (растягивалась на гранях, повёрнутых ребром), matcap по плоским
+// и по сглаженным нормалям — каждый чистым и под светом тела.
+//
+// Рога и копыта: чёрные на цветном фоне выбивались, поэтому к ним подмешивается цвет
+// размытого фона страницы ровно за ними — фон и есть та же обложка.
+const COVER = {
+  // Как у размытого фона страницы (.hover-background в global.css): лось и фон
+  // проявляются вместе.
+  durationMs: 750,
+  // Исходники бывают по 5000 px и 10 МБ, а грани хватает одного участка картинки.
+  textureWidth: 1024,
+  // Доля цвета фона в рогах и копытах. Выбрана из 0.35 / 0.55 по снимкам на трёх обложках.
+  backdropTint: 0.55,
+};
+const easeCss = cubicBezier(0.25, 0.1, 0.25, 1); // CSS `ease`
+
+// Обложка лежит под светом и matcap, как белая основа. Полусферический свет только
+// затемняет (множитель от 0.63 до 0.77), и краски тускнели; поэтому он нормирован
+// на свою среднюю величину — ту, что у грани, повёрнутой к небу и к земле поровну.
+const LIGHT_AVERAGE = 1 - LIGHT_MIX + LIGHT_MIX * (HEMI.sky + HEMI.ground) / 2;
 
 const VERTEX = /* glsl */ `
   #include <common>
@@ -145,18 +178,42 @@ const FRAGMENT = /* glsl */ `
   varying vec3 vViewPosition;
   varying vec3 vNormal;
 
+  #ifdef USE_COVER
+    uniform sampler2D uCoverA;
+    uniform sampler2D uCoverB;
+    uniform float uCoverMix;    // 0 — обложка из слота A, 1 — из слота B
+    uniform float uCoverAmount; // 0 — без обложки, 1 — обложка целиком
+    uniform vec2 uCoverFitA;    // развёртка matcap квадратная — берётся центральный квадрат
+    uniform vec2 uCoverFitB;
+    uniform vec4 uBackdropA;    // css px канваса → uv обложки на размытом фоне: xy · px + zw
+    uniform vec4 uBackdropB;
+    uniform vec2 uBackdropLod;  // уровень мипмапа, равный размытию фона, для слотов A и B
+    uniform float uBackdropTint;
+    uniform vec2 uCanvas;       // высота буфера канваса в px и pixel ratio
+  #endif
+
+  vec3 overlay( vec3 color, vec3 m ) {
+    return clamp( mix( 1.0 - 2.0 * ( 1.0 - color ) * ( 1.0 - m ), 2.0 * color * m, step( color, vec3( 0.5 ) ) ), 0.0, 1.0 );
+  }
+
+  // Слой света и matcap поверх основы.
+  vec3 shade( vec3 base, vec3 normal, vec3 m ) {
+    // Условие повторяет Spline буквально: на чёрной основе освещение совпадает
+    // с основой, и смешивание пропускается.
+    vec3 color = base;
+    vec3 lit = mix( uGround, uSky, 0.5 * dot( normal, uHemiDir ) + 0.5 ) * base;
+    if ( lit != base ) color = mix( base, lit, uLightMix );
+
+    if ( uBlend == ${BLEND.screen} ) return 1.0 - ( 1.0 - color ) * ( 1.0 - m );
+    return overlay( color, m );
+  }
+
   void main() {
     vec3 normal = normalize( vNormal );
 
     // Spline разворачивает нормали, смотрящие от камеры, по экранным производным.
     vec3 faceNormal = normalize( cross( dFdx( vViewPosition ), dFdy( vViewPosition ) ) );
     if ( dot( normal, faceNormal ) < 0.0 ) normal = - normal;
-
-    // Слой света. Условие повторяет Spline буквально: на чёрной основе освещение
-    // совпадает с основой, и смешивание пропускается.
-    vec3 color = uBase;
-    vec3 lit = mix( uGround, uSky, 0.5 * dot( normal, uHemiDir ) + 0.5 ) * uBase;
-    if ( lit != uBase ) color = mix( uBase, lit, uLightMix );
 
     // Matcap — та же развёртка, что в Spline, включая множитель 0.495.
     vec3 viewDir = normalize( vViewPosition );
@@ -165,11 +222,36 @@ const FRAGMENT = /* glsl */ `
     vec2 uv = vec2( dot( axisX, normal ), dot( axisY, normal ) ) * 0.495 + 0.5;
     vec3 m = texture2D( uMatcap, uv ).rgb;
 
-    if ( uBlend == ${BLEND.screen} ) {
-      color = 1.0 - ( 1.0 - color ) * ( 1.0 - m );
-    } else {
-      color = clamp( mix( 1.0 - 2.0 * ( 1.0 - color ) * ( 1.0 - m ), 2.0 * color * m, step( color, vec3( 0.5 ) ) ), 0.0, 1.0 );
-    }
+    vec3 color = shade( uBase, normal, m );
+
+    #ifdef USE_COVER
+      if ( uCoverAmount > 0.0 ) {
+        #ifdef COVER_MATCAP
+          // Обложка как matcap: та же развёртка по нормали. v перевёрнут — у текстуры
+          // обложки v = 0 на верхнем крае. Уровень мипмапа задан явно: на рёбрах граней
+          // развёртка рвётся, и автоматический выбор давал бы там размытые швы.
+          vec2 q = vec2( dot( axisX, normal ), - dot( axisY, normal ) ) * 0.495;
+          vec3 image = mix(
+            textureLod( uCoverA, 0.5 + q * uCoverFitA, 0.0 ).rgb,
+            textureLod( uCoverB, 0.5 + q * uCoverFitB, 0.0 ).rgb,
+            uCoverMix
+          );
+          // Вместо белой основы — под тем же светом и matcap; см. LIGHT_AVERAGE.
+          vec3 hemi = mix( uGround, uSky, 0.5 * dot( normal, uHemiDir ) + 0.5 );
+          vec3 lit = clamp( image * mix( vec3( 1.0 ), hemi, uLightMix ) / ${LIGHT_AVERAGE.toFixed(4)}, 0.0, 1.0 );
+          color = mix( color, overlay( lit, m ), uCoverAmount );
+        #else
+          // Цвет размытого фона страницы в этой же точке экрана.
+          vec2 css = vec2( gl_FragCoord.x, uCanvas.x - gl_FragCoord.y ) / uCanvas.y;
+          vec3 backdrop = mix(
+            textureLod( uCoverA, css * uBackdropA.xy + uBackdropA.zw, uBackdropLod.x ).rgb,
+            textureLod( uCoverB, css * uBackdropB.xy + uBackdropB.zw, uBackdropLod.y ).rgb,
+            uCoverMix
+          );
+          color = mix( color, backdrop, uBackdropTint * uCoverAmount );
+        #endif
+      }
+    #endif
 
     // Без конвертации цветового пространства: Spline выводил значения как есть
     // (linearToOutputTexel = LinearToLinear), и matcap-ы рассчитаны на это.
@@ -246,6 +328,7 @@ export function mountElk(stage) {
       get clock() { return clock; },
       get running() { return raf !== 0; },
       get lastDt() { return lastDt; },
+      get cover() { return { amount: coverAmount, mix: coverMix, front: coverFront, slots: coverSlots, uniforms: coverUniforms }; },
     };
   }
 
@@ -254,6 +337,21 @@ export function mountElk(stage) {
 
   let mixer = null;
   let headBone = null;
+
+  // Общие для тела, рогов и копыт: одно присваивание меняет все три материала.
+  const coverUniforms = {
+    uCoverA: { value: null },
+    uCoverB: { value: null },
+    uCoverMix: { value: 0 },
+    uCoverAmount: { value: 0 },
+    uCoverFitA: { value: new Vector2(1, 1) },
+    uCoverFitB: { value: new Vector2(1, 1) },
+    uBackdropA: { value: new Vector4() },
+    uBackdropB: { value: new Vector4() },
+    uBackdropLod: { value: new Vector2() },
+    uBackdropTint: { value: COVER.backdropTint },
+    uCanvas: { value: new Vector2(1, 1) },
+  };
   // Два разных факта, и путать их нельзя: `loaded` — модель и материалы собраны, это
   // переживает потерю WebGL-контекста; `ready` — можно рисовать прямо сейчас.
   let loaded = false;
@@ -279,6 +377,9 @@ export function mountElk(stage) {
     camera.aspect = width / height;
     camera.zoom = CAMERA.zoom * Math.min(1, camera.aspect / FULL_FRAME_ASPECT);
     camera.updateProjectionMatrix();
+    coverUniforms.uCanvas.value.set(canvas.height, renderer.getPixelRatio());
+    fitBackdrop(0);
+    fitBackdrop(1);
     // setSize очищает буфер, а ResizeObserver срабатывает уже после кадра цикла —
     // без немедленной перерисовки браузер покажет пустой канвас, лось мигнёт.
     // dt = 0: часы, анимация и сглаживание курсора не сдвигаются.
@@ -334,6 +435,10 @@ export function mountElk(stage) {
 
     const progress = MathUtils.clamp(window.scrollY / SCROLL_TURN_PX, 0, 1);
     rotate.rotation.y = -Math.PI * 2 * easeInOut(progress);
+
+    const now = performance.now();
+    coverUniforms.uCoverAmount.value = tweenValue(coverAmount, now);
+    coverUniforms.uCoverMix.value = tweenValue(coverMix, now);
   }
 
   function renderFrame(dt) {
@@ -409,6 +514,166 @@ export function mountElk(stage) {
     ];
   }
 
+  // ── обложка проекта ──
+  // Два слота, чтобы при переходе с одной работы на другую обложки перетекали друг
+  // в друга, а не мигали белым. Обе величины — твины с кривой и длительностью фона
+  // страницы; при смене цели твин продолжается с текущего значения.
+  const coverAmount = { from: 0, to: 0, start: 0, duration: 0 };
+  const coverMix = { from: 0, to: 0, start: 0, duration: 0 };
+  const coverSlots = [{ key: null, texture: null }, { key: null, texture: null }];
+  let coverFront = 0;
+  let coverRequest = 0;
+  const coverTextures = new Map();
+
+  function tweenValue(tween, now) {
+    if (!tween.duration) return tween.to;
+    const t = Math.min(1, (now - tween.start) / tween.duration);
+    return tween.from + (tween.to - tween.from) * easeCss(t);
+  }
+
+  function retarget(tween, to, now) {
+    const current = tweenValue(tween, now);
+    tween.from = current;
+    tween.to = to;
+    tween.start = now;
+    // Как у CSS-перехода, прерванного на полпути: обратный путь короче прямого.
+    tween.duration = isAnimating() ? COVER.durationMs * Math.abs(to - current) : 0;
+  }
+
+  // Без цикла анимации (reduced motion) кадр сам не нарисуется.
+  function redrawCover() {
+    if (!raf && ready && active && !document.hidden) renderFrame(0);
+  }
+
+  function coverTexture(image) {
+    const key = image.currentSrc || image.src;
+    let texture = coverTextures.get(key);
+    if (!texture) {
+      texture = createCoverTexture(image);
+      coverTextures.set(key, texture);
+      texture.catch(() => coverTextures.delete(key)); // неудача не должна застрять в кеше
+    }
+    return texture;
+  }
+
+  async function createCoverTexture(image) {
+    if (!image.complete || !image.naturalWidth) await image.decode();
+    const limit = Math.min(COVER.textureWidth, renderer.capabilities.maxTextureSize);
+    const scale = Math.min(1, limit / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+    // Сжатие и декодирование — вне главного потока, иначе первое наведение на 10-мегабайтную
+    // обложку подвешивало бы страницу. Где createImageBitmap не умеет уменьшать, — через canvas.
+    let source = null;
+    try {
+      source = await createImageBitmap(image, { resizeWidth: width, resizeHeight: height, resizeQuality: 'high' });
+    } catch {
+      source = null;
+    }
+    if (!source || source.width > width * 1.5) {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(source ?? image, 0, 0, width, height);
+      source?.close?.();
+      source = canvas;
+    }
+
+    const texture = new Texture(source);
+    // UNPACK_FLIP_Y к ImageBitmap не применяется, поэтому не переворачиваем ни один
+    // источник, а верх картинки учитываем в развёртках (v = 0 — её верхний край).
+    texture.flipY = false;
+    texture.colorSpace = NoColorSpace;
+    texture.needsUpdate = true;
+    renderer.initTexture(texture); // в видеопамять сейчас, а не посреди проявления
+    return texture;
+  }
+
+  function assignCover(slot, key, texture) {
+    coverSlots[slot].key = key;
+    coverSlots[slot].texture = texture;
+    coverUniforms[slot ? 'uCoverB' : 'uCoverA'].value = texture;
+    const aspect = texture.image.width / texture.image.height;
+    coverUniforms[slot ? 'uCoverFitB' : 'uCoverFitA'].value.set(aspect > 1 ? 1 / aspect : 1, aspect > 1 ? 1 : aspect);
+    fitBackdrop(slot);
+  }
+
+  // Где на размытом фоне страницы оказывается каждая точка канваса. Фон — та же обложка
+  // с background-size: cover по центру, поэтому связь линейная; размытие CSS
+  // переводится в уровень мипмапа: у гауссианы σ ширина равного ей ящика — σ·√12.
+  function fitBackdrop(slot) {
+    const texture = coverSlots[slot].texture;
+    if (!texture) return;
+    const element = document.querySelector('.hover-background');
+    const box = element?.getBoundingClientRect() ?? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+    const aspect = texture.image.width / texture.image.height;
+    const height = Math.max(box.width / aspect, box.height);
+    const width = height * aspect;
+    const left = box.left + (box.width - width) / 2;
+    const top = box.top + (box.height - height) / 2;
+    const rect = canvas.getBoundingClientRect();
+    coverUniforms[slot ? 'uBackdropB' : 'uBackdropA'].value.set(1 / width, 1 / height, (rect.left - left) / width, (rect.top - top) / height);
+
+    const blur = Number(/blur\(([\d.]+)px\)/.exec(element ? getComputedStyle(element).filter : '')?.[1] ?? 0);
+    const texelCss = width / texture.image.width;
+    coverUniforms.uBackdropLod.value.setComponent(slot, Math.max(0, Math.log2((blur * Math.sqrt(12)) / texelCss)));
+  }
+
+  function showCover(key, texture) {
+    const now = performance.now();
+    const visible = tweenValue(coverAmount, now) > 0.001;
+
+    if (visible && coverSlots[coverFront].key === key) {
+      // Вернулись на ту же работу, пока обложка ещё не погасла.
+      retarget(coverAmount, 1, now);
+      return;
+    }
+
+    if (!visible) {
+      assignCover(coverFront, key, texture);
+      Object.assign(coverMix, { from: coverFront, to: coverFront, start: now, duration: 0 });
+    } else {
+      // Новую обложку — в менее заметный сейчас слот: так подмена почти не видна,
+      // даже если посетитель пронёсся по трём работам подряд.
+      const slot = tweenValue(coverMix, now) < 0.5 ? 1 : 0;
+      coverFront = slot;
+      assignCover(slot, key, texture);
+      retarget(coverMix, slot, now);
+    }
+    retarget(coverAmount, 1, now);
+  }
+
+  function resetCover() {
+    coverRequest++;
+    Object.assign(coverAmount, { from: 0, to: 0, duration: 0 });
+    // И сам uniform: цикл остановлен, и без этого до первого кадра он хранил бы старое.
+    coverUniforms.uCoverAmount.value = 0;
+  }
+
+  window.addEventListener('elk:cover', (event) => {
+    const image = event.detail?.image ?? null;
+    const request = ++coverRequest;
+    if (!loaded || !ready || !active) return;
+
+    if (!image) {
+      retarget(coverAmount, 0, performance.now());
+      redrawCover();
+      return;
+    }
+    // На тач-экранах «наведение» — это тап, за которым сразу переход на кейс.
+    if (!finePointer.matches) return;
+
+    coverTexture(image)
+      .then((texture) => {
+        // Пока текстура готовилась, курсор мог уйти или перейти на другую работу.
+        if (request !== coverRequest || !ready || !active) return;
+        showCover(image.currentSrc || image.src, texture);
+        redrawCover();
+      })
+      .catch((error) => console.warn('[elk] cover texture failed', error));
+  });
+
   // ── загрузка ──
   const textureLoader = new TextureLoader();
   const loadMatcap = (src) => textureLoader.loadAsync(src).then((texture) => {
@@ -447,6 +712,7 @@ export function mountElk(stage) {
             shaded.set(spec, new ShaderMaterial({
               vertexShader: VERTEX,
               fragmentShader: FRAGMENT,
+              defines: spec.cover === 'matcap' ? { USE_COVER: '', COVER_MATCAP: '' } : { USE_COVER: '' },
               uniforms: {
                 uMatcap: { value: matcaps[spec.matcap] },
                 uBase: { value: new Vector3(...spec.base) },
@@ -455,6 +721,7 @@ export function mountElk(stage) {
                 uHemiDir: { value: hemiDir },
                 uLightMix: { value: LIGHT_MIX },
                 uBlend: { value: spec.blend },
+                ...coverUniforms,
               },
             }));
           }
@@ -499,7 +766,11 @@ export function mountElk(stage) {
       // Сбой загрузки — не приговор на всю сессию: при следующем заходе на главную пробуем снова.
       if (active && !loaded) load();
       if (active) start();
-      else stop();
+      else {
+        stop();
+        // Ушли на кейс кликом по работе — mouseleave не случится. Лось вернётся белым.
+        resetCover();
+      }
     },
   };
 }
