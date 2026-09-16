@@ -1,0 +1,755 @@
+---
+// Прелоадер главной: «разобранный чертёж» логотипа.
+//
+// Четыре настоящие детали знака (контуры из favicon-08.svg) висят вразлёт на
+// штрихпунктирных осях внутри меток обреза. Каждая РЕАЛЬНАЯ веха загрузки 3D-сцены
+// сажает одну группу деталей на место:
+//
+//   elk:engine          three.js загружен, WebGL поднят   → чаша с рогами
+//   elk:progress = 1    модель скачана (щёки тянутся по байтам) → обе щеки
+//   elk:ready           первый кадр уже на экране          → морда, замыкающая деталь
+//
+// Знак не может собраться раньше модели. Затем метки обреза смыкаются на готовом
+// знаке, он перелетает туда, где отрисована голова настоящего 3D-лося, и страница
+// раскрывается оттуда: логотип передаёт место живой модели.
+//
+// Выбран из трёх прототипов, прогнанных в браузере на шести сценариях загрузки, —
+// единогласно тремя судьями (ремесло, надёжность, посетитель). Их правки внесены.
+//
+// Показ решает инлайновый скрипт в <head> Layout.astro: только при полной загрузке
+// главной и только один раз за сессию. Без JS разметка не видна вовсе.
+---
+<div id="preloader" role="progressbar" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0">
+  <div class="pl-inner" aria-hidden="true">
+    {/* Кремовая заслонка из четырёх плит: раскрывается трансформами, а не clip-path,
+        чтобы движение шло на композиторе и не спотыкалось о первый кадр 3D. */}
+    <i class="pl-slab pl-slab--l"></i>
+    <i class="pl-slab pl-slab--r"></i>
+    <i class="pl-slab pl-slab--t"></i>
+    <i class="pl-slab pl-slab--b"></i>
+
+    <div class="pl-stage">
+      <div class="pl-guide" data-guide="bowl" style="--gx:0;--gy:-0.2072;--ga:-90deg;--gl:0.456;--gpx:-0.5px"><i class="pl-pulse"></i></div>
+      <div class="pl-guide" data-guide="cheekR" style="--gx:0.2228;--gy:0.1988;--ga:16.26deg;--gl:0.44"><i class="pl-pulse"></i></div>
+      <div class="pl-guide" data-guide="cheekL" style="--gx:-0.2236;--gy:0.1983;--ga:163.74deg;--gl:0.44"><i class="pl-pulse"></i></div>
+      <div class="pl-guide" data-guide="muzzle" style="--gx:0;--gy:0.2964;--ga:90deg;--gl:0.424;--gpx:0.5px"><i class="pl-pulse"></i></div>
+
+      <div class="pl-mark">
+        {/* Контуры — дословно из favicon-08.svg; transform-origin = центр габарита детали. */}
+        <svg class="pl-part" data-part="bowl" viewBox="0 0 250.21 250.21" style="transform-origin:49.98% 29.28%" focusable="false"><path d="M237.45,32.42c-.04-2.7-.18-5.38-.41-8.03-.05-.6-.08-1.2-.14-1.8-.07-.7-.18-1.39-.27-2.08-.13-1.05-.24-2.11-.4-3.15-.55-3.66-1.28-7.27-2.18-10.81-3.11-2.27-6.28-4.46-9.54-6.55,1.22,3.53,2.25,7.14,3.08,10.82.39,1.73.75,3.48,1.05,5.25.47,2.71.85,5.45,1.11,8.23.12,1.34.23,2.68.31,4.03.11,1.93.17,3.88.17,5.84,0,.88-.04,1.75-.07,2.62-.04,1.5-.1,2.99-.2,4.47-1.96,29.18-15.85,55.12-36.85,72.98-.93.79-1.87,1.56-2.83,2.32-.63-1.04-1.28-2.06-1.96-3.07-2.65-3.94-5.66-7.62-8.98-10.99-.91-.92-1.83-1.82-2.78-2.7-1.85-1.7-3.78-3.32-5.8-4.83-1.03,2.28-2,4.59-2.91,6.93,2.03,1.61,3.97,3.32,5.8,5.14.96.96,1.89,1.95,2.79,2.96,2.2,2.46,4.22,5.07,6.05,7.83.67,1.01,1.31,2.03,1.92,3.08-1,.68-2.01,1.34-3.04,1.99-3.24,2.07-6.6,3.97-10.07,5.68-1.33.66-2.69,1.28-4.05,1.88-2.57,1.13-5.19,2.15-7.87,3.08-1.27.44-2.55.87-3.84,1.26-9.65,2.93-19.87,4.52-30.47,4.52s-20.82-1.59-30.47-4.52c-1.29-.39-2.57-.82-3.84-1.26-2.67-.93-5.3-1.95-7.87-3.08-1.36-.6-2.72-1.22-4.05-1.88-3.47-1.71-6.83-3.61-10.07-5.68-1.02-.65-2.04-1.3-3.04-1.99.62-1.04,1.26-2.07,1.92-3.08,1.83-2.75,3.85-5.37,6.05-7.83.9-1.01,1.83-2,2.79-2.96,1.83-1.82,3.77-3.53,5.8-5.14-.91-2.34-1.88-4.65-2.91-6.93-2.01,1.51-3.95,3.13-5.8,4.83-.95.87-1.88,1.77-2.78,2.7-3.32,3.37-6.33,7.05-8.98,10.99-.68,1.01-1.33,2.03-1.96,3.07-.96-.76-1.9-1.53-2.83-2.32-21-17.86-34.9-43.8-36.85-72.98-.1-1.48-.16-2.97-.2-4.47-.02-.87-.07-1.74-.07-2.62,0-1.96.06-3.9.17-5.84.07-1.35.18-2.69.31-4.03.26-2.78.64-5.52,1.11-8.23.31-1.76.66-3.51,1.05-5.25.84-3.68,1.87-7.29,3.08-10.82-3.25,2.08-6.43,4.27-9.54,6.55-.9,3.54-1.63,7.14-2.18,10.81-.16,1.04-.27,2.1-.4,3.15-.08.7-.19,1.38-.27,2.08-.06.6-.09,1.2-.14,1.8-.23,2.65-.37,5.33-.41,8.03,0,.58-.04,1.15-.04,1.73,0,.82.04,1.63.06,2.44.73,33.8,16.42,63.98,40.73,84.12.95.79,1.93,1.54,2.91,2.3,1.95,1.51,3.93,2.98,5.98,4.36,1.01.68,2.05,1.33,3.08,1.98,4.73,2.97,9.69,5.61,14.86,7.86,1.27.56,2.56,1.08,3.86,1.59,2.49.98,5.01,1.9,7.59,2.7,1.23.38,2.48.72,3.73,1.06,9.43,2.58,19.35,3.98,29.59,3.98s20.15-1.4,29.59-3.98c1.25-.34,2.5-.68,3.73-1.06,2.57-.8,5.09-1.72,7.59-2.7,1.3-.51,2.59-1.03,3.86-1.59,5.17-2.25,10.13-4.89,14.86-7.86,1.03-.65,2.07-1.3,3.08-1.98,2.05-1.38,4.03-2.85,5.98-4.36.98-.76,1.96-1.51,2.91-2.3,24.32-20.15,40.01-50.32,40.73-84.12.02-.82.06-1.62.06-2.44,0-.58-.04-1.16-.04-1.73Z"/></svg>
+        <svg class="pl-part" data-part="cheekR" viewBox="0 0 250.21 250.21" style="transform-origin:72.28% 69.88%" focusable="false"><path d="M189.25,130.77c3.05,7.77,4.74,16.23,4.74,25.07,0,17.59-6.64,33.65-17.53,45.84-.9,1.01-1.83,2-2.79,2.96-1.83,1.82-3.77,3.53-5.8,5.14-.98.78-1.98,1.53-3.01,2.26-.99.71-2.01,1.39-3.04,2.04l-1.36,9.16c2.52-1.33,4.97-2.78,7.31-4.37,1.02-.69,2.02-1.41,3-2.15,2.01-1.51,3.95-3.13,5.8-4.83.95-.87,1.88-1.77,2.78-2.7,13.52-13.75,21.88-32.58,21.88-53.34,0-10.42-2.11-20.36-5.91-29.41-1.98,1.51-4,2.96-6.08,4.34Z"/></svg>
+        <svg class="pl-part" data-part="cheekL" viewBox="0 0 250.21 250.21" style="transform-origin:27.64% 69.83%" focusable="false"><path d="M85.35,212.03c-1.02-.73-2.03-1.48-3.01-2.26-2.03-1.61-3.97-3.32-5.8-5.14-.96-.96-1.89-1.95-2.79-2.96-10.89-12.19-17.53-28.25-17.53-45.84,0-8.84,1.69-17.29,4.74-25.07-2.08-1.38-4.1-2.83-6.08-4.34-3.81,9.05-5.91,18.99-5.91,29.41,0,20.76,8.36,39.59,21.88,53.34.91.92,1.83,1.82,2.78,2.7,1.85,1.7,3.78,3.32,5.8,4.83.98.74,1.98,1.46,3,2.15,2.34,1.59,4.79,3.05,7.31,4.37l-1.36-9.16c-1.03-.65-2.04-1.33-3.04-2.04Z"/></svg>
+        <svg class="pl-part" data-part="muzzle" viewBox="0 0 250.21 250.21" style="transform-origin:50% 79.64%" focusable="false"><path d="M165.33,165.7l2.42-16.3-2.6-.39h0s-.98-.15-.98-.15l-3.59-.53h0s-2.53,17.06-2.53,17.06l-2.1,14.13-5.4,36.41-.61,4.14-1.21,8.13-.47,3.15c-.04.29-.11.57-.18.86-1.42,6.19-7.95,10.76-15.61,10.76h-14.73c-7.67,0-14.2-4.57-15.62-10.76-.07-.28-.13-.57-.18-.86l-.47-3.15-1.21-8.13-.61-4.14-5.4-36.41-2.1-14.13-2.53-17.06-3.59.53-.99.15h0s-2.6.39-2.6.39l2.42,16.3,3.62,24.37,1.34,9.03,1.9,12.79.68,4.56,1.29,8.71.63,4.25.44,3c1.51,10.15,11.38,17.8,22.96,17.8h14.73c11.58,0,21.46-7.65,22.96-17.8l.45-3,.63-4.25,1.29-8.71.68-4.56,1.9-12.79,1.34-9.03,3.62-24.37Z"/></svg>
+      </div>
+
+      {/* Метки совмещения: вспыхивают в точке посадки, когда деталь встаёт на место. */}
+      <i class="pl-tick" data-tick="bowl" style="--tx:49.98%;--ty:29.28%"></i>
+      <i class="pl-tick" data-tick="cheekR" style="--tx:72.28%;--ty:69.88%"></i>
+      <i class="pl-tick" data-tick="cheekL" style="--tx:27.64%;--ty:69.83%"></i>
+      <i class="pl-tick" data-tick="muzzle" style="--tx:50%;--ty:79.64%"></i>
+
+      <span class="pl-crop pl-crop--tl"><i></i></span>
+      <span class="pl-crop pl-crop--tr"><i></i></span>
+      <span class="pl-crop pl-crop--bl"><i></i></span>
+      <span class="pl-crop pl-crop--br"><i></i></span>
+    </div>
+
+    <div class="pl-cap">
+      <span class="pl-roll" data-roll="idx"></span>
+      <span class="pl-cap__rule"></span>
+      <span class="pl-roll" data-roll="label"></span>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  /* Глобально, а не scoped: всё завязано на класс html.pl-on, который ставит скрипт
+     в <head>. Префикс pl- держит селекторы от столкновений с остальным сайтом. */
+
+  #preloader { display: none; }
+
+  /* Прокрутка снята, пока идёт загрузка. Этого мало: SmoothScroll.js крутит страницу
+     программно, в обход overflow, — его останавливает перехват событий в <head>. */
+  html.pl-lock { overflow: hidden; }
+
+  /* Под прелоадером канвасу не нужно своё проявление: иначе elk:ready наступал бы,
+     пока канвас ещё прозрачен, и страница раскрывалась бы на полупрозрачного лося. */
+  html.pl-on .elk-canvas { transition: none; }
+
+  html.pl-on #preloader {
+    --pl-ink: #0f0f0f;
+    --pl-cream: var(--base);
+    --S: 220px;              /* размер знака; JS округляет до чётных px ради чётких волосяных линий */
+    --h: calc(var(--S) * 0.92);
+    --hx: 50%;               /* точка, откуда раскроется страница — голова 3D-лося */
+    --hy: 50%;
+
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;           /* над навигацией (1000), под курсором сайта (9999) */
+    contain: strict;
+    pointer-events: none;
+    /* Страховка на чистом CSS: если контроллер умер, оверлей уходит сам через 10 с. */
+    animation: pl-failsafe 400ms cubic-bezier(0.76, 0, 0.24, 1) 10000ms forwards;
+  }
+  @keyframes pl-failsafe { to { opacity: 0; visibility: hidden; } }
+
+  .pl-inner {
+    position: absolute;
+    inset: 0;
+    pointer-events: auto;
+    touch-action: none;
+    overscroll-behavior: contain;
+  }
+
+  .pl-slab {
+    position: absolute;
+    background: var(--pl-cream);
+    will-change: transform;
+  }
+  /* +1px перекрытия, чтобы на дробных координатах между плитами не светил шов. */
+  .pl-slab--l { left: 0; top: 0; bottom: 0; width: calc(var(--hx) + 1px); }
+  .pl-slab--r { right: 0; top: 0; bottom: 0; left: calc(var(--hx) - 1px); }
+  .pl-slab--t { left: 0; right: 0; top: 0; height: calc(var(--hy) + 1px); }
+  .pl-slab--b { left: 0; right: 0; bottom: 0; top: calc(var(--hy) - 1px); }
+
+  .pl-stage {
+    position: absolute;
+    width: var(--S);
+    height: var(--S);
+    left: calc(50% - var(--S) / 2);
+    top: calc(50% - var(--S) / 2);
+    will-change: transform;
+  }
+  .pl-mark { position: absolute; inset: 0; }
+  .pl-part {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .pl-part path { fill: var(--pl-ink); }
+
+  /* Оси сборки. Были серым #b8b9bb с контрастом 1.45:1 — на скриншотах их не было видно.
+     Теперь чернила на 35 %: читаются как чертёж с обычного расстояния. */
+  .pl-guide {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    height: 1px;
+    width: calc(var(--gl) * var(--S));
+    transform-origin: 0 0;
+    transform: translate(calc(var(--gx) * var(--S) + var(--gpx, 0px)), calc(var(--gy) * var(--S))) rotate(var(--ga));
+    overflow: hidden;
+    background-image: repeating-linear-gradient(90deg,
+      rgba(15, 15, 15, 0.35) 0 10px, transparent 10px 14px,
+      rgba(15, 15, 15, 0.35) 14px 16px, transparent 16px 20px);
+    clip-path: inset(0px 0% 0px 100%);
+  }
+  .pl-pulse {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: translateX(88%);
+    background: linear-gradient(90deg, var(--pl-ink) 0 16px, transparent 16px);
+  }
+
+  .pl-tick {
+    position: absolute;
+    left: var(--tx);
+    top: var(--ty);
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    opacity: 0;
+    background:
+      linear-gradient(var(--pl-ink), var(--pl-ink)) center / 1px 100% no-repeat,
+      linear-gradient(var(--pl-ink), var(--pl-ink)) center / 100% 1px no-repeat;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--pl-ink);
+  }
+
+  .pl-crop {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    will-change: transform;
+  }
+  .pl-crop > i { position: absolute; inset: 0; border: 0 solid var(--pl-ink); opacity: 0; }
+  .pl-crop--tl { transform: translate(calc(var(--h) * -1), calc(var(--h) * -1)); }
+  .pl-crop--tr { transform: translate(calc(var(--h) - 16px), calc(var(--h) * -1)); }
+  .pl-crop--bl { transform: translate(calc(var(--h) * -1), calc(var(--h) - 16px)); }
+  .pl-crop--br { transform: translate(calc(var(--h) - 16px), calc(var(--h) - 16px)); }
+  .pl-crop--tl > i { border-top-width: 1px; border-left-width: 1px; }
+  .pl-crop--tr > i { border-top-width: 1px; border-right-width: 1px; }
+  .pl-crop--bl > i { border-bottom-width: 1px; border-left-width: 1px; }
+  .pl-crop--br > i { border-bottom-width: 1px; border-right-width: 1px; }
+
+  /* Подпись: появляется, только если ждать приходится достаточно долго, чтобы нужны были слова. */
+  .pl-cap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(var(--h) * 2);
+    transform: translate(-50%, calc(var(--h) + 26px));
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: medium, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    line-height: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pl-ink);
+    white-space: nowrap;
+  }
+  .pl-roll { display: inline-grid; height: 13px; overflow: hidden; }
+  .pl-roll[data-roll='label'] { justify-items: end; }
+  .pl-roll > span { grid-area: 1 / 1; display: block; transform: translateY(110%); }
+  .pl-dim { opacity: 0.42; }
+  .pl-cap__rule {
+    flex: 1 1 auto;
+    height: 1px;
+    background: rgba(15, 15, 15, 0.35);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+
+  /* Меньше движения: ничего не летает. Бледный знак → детали наливаются чернилами
+     по реальным вехам → спокойное растворение. */
+  html.pl-rm .pl-guide { display: none; }
+  html.pl-rm .pl-roll > span { transform: none; }
+  html.pl-rm .pl-cap { opacity: 0; }
+  html.pl-rm .pl-cap__rule { transform: none; }
+</style>
+
+<script>
+  // Контроллер прелоадера. Модуль бандлится Astro и выполняется один раз за сессию;
+  // оживает, только если скрипт в <head> включил показ (html.pl-on).
+
+  type Vec = number[];
+  type Tween = { a: Animation; value(): Vec; cancel(): void };
+  type Part = {
+    key: string; ox: number; oy: number; rot: number;
+    el: HTMLElement; guide: HTMLElement; pulse: HTMLElement; tick: HTMLElement;
+    h: Tween | null; gh: Tween | null; seated: boolean; entering: boolean; floor: number | null;
+  };
+
+  const root = document.documentElement;
+  const overlay = document.getElementById('preloader');
+
+  if (overlay && root.classList.contains('pl-on') && !(window as any).__plBooted) {
+    (window as any).__plBooted = true;
+    boot(overlay);
+  }
+
+  function boot(overlay: HTMLElement) {
+    const P = (window as any).__preloader;
+    const shownAt: number = P?.shownAt ?? 0;
+    const rm = root.classList.contains('pl-rm');
+    const ru = root.dataset.lang === 'ru';
+
+    // ───────── тайминги, мс ─────────
+    const T = {
+      GRACE: 350,          // только кремовая заслонка; успели загрузиться — чертежа не будет вовсе
+      QUIET_FADE: 260,
+      ENTER: 900,
+      ENTER_STAGGER: 70,
+      SETTLE: 220,         // разлёт должен успеть прочитаться, прежде чем деталь сядет
+      SEAT_GAP: 110,
+      SEAT: 760,
+      DRIFT: 7000,         // асимптотическое приближение, пока веха не наступила; до места не доходит
+      PULSE_AFTER: 600,
+      PULSE: 1500,
+      CAPTION_AFTER: 900,
+      CLAMP: 600,          // метки обреза смыкаются на готовом знаке
+      READY_HOLD: 280,     // «03 / 03 Готово» успевает прочитаться
+      GLIDE: 520,          // знак перелетает к голове 3D-лося
+      EXIT: 1100,
+      LATE_READY: 6500,    // готово так поздно, что церемонию сокращаем
+      LATE_EXIT: 700,
+      ABORT_FADE: 600,
+      RM_HOLD: 520,
+      RM_FADE: 420,
+      HARD_TIMEOUT: 8000,
+    };
+    const EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)';
+    const QUART = 'cubic-bezier(0.76, 0, 0.24, 1)';
+    const DRIFT_EASE = 'cubic-bezier(0.33, 1, 0.68, 1)';
+    const GHOST = 0.38;
+    const RM_GHOST = 0.2;
+    const FLOOR_NEXT = 0.42;
+    const FLOOR_OTHER = 0.8;
+    // Щёки тянутся по реальной доле скачанных байтов, но не ближе этой доли от места:
+    // даже при 99 % деталь видимо не посажена, и обрыв загрузки не выглядит «почти готовым».
+    const BYTE_FLOOR = 0.45;
+    const CROP_WAIT = 0.5;
+
+    const $ = (s: string) => overlay.querySelector<HTMLElement>(s)!;
+    const inner = $('.pl-inner');
+    const stage = $('.pl-stage');
+    const markEl = $('.pl-mark');
+    const cap = $('.pl-cap');
+    const rule = $('.pl-cap__rule');
+    const idxBox = $('[data-roll="idx"]') as HTMLElement & { _cur?: HTMLElement | null };
+    const labelBox = $('[data-roll="label"]') as HTMLElement & { _cur?: HTMLElement | null };
+    const slabs = {
+      l: $('.pl-slab--l'), r: $('.pl-slab--r'), t: $('.pl-slab--t'), b: $('.pl-slab--b'),
+    };
+
+    const make = (key: string, ox: number, oy: number, rot: number): Part => ({
+      key, ox, oy, rot,
+      el: $(`.pl-part[data-part="${key}"]`),
+      guide: $(`.pl-guide[data-guide="${key}"]`),
+      pulse: $(`.pl-guide[data-guide="${key}"] .pl-pulse`),
+      tick: $(`.pl-tick[data-tick="${key}"]`),
+      h: null, gh: null, seated: false, entering: false, floor: null,
+    });
+    const PARTS = {
+      bowl: make('bowl', 0, -0.26, -5),
+      cheekR: make('cheekR', 0.24, 0.07, 16),
+      cheekL: make('cheekL', -0.24, 0.07, -16),
+      muzzle: make('muzzle', 0, 0.24, 5),
+    };
+    const PART_LIST = [PARTS.bowl, PARTS.cheekR, PARTS.cheekL, PARTS.muzzle];
+
+    // Подпись считает ЗАВЕРШЁННЫЕ шаги и называет текущий. В первой версии счётчик
+    // показывал номер ожидаемого шага, и «03 / 03» висело до шести секунд, читаясь как «готово».
+    const L = ru
+      ? { engine: '3D-движок', model: 'Модель лося', frame: 'Первый кадр', ready: 'Готово', aria: 'Загрузка 3D-сцены' }
+      : { engine: '3D engine', model: 'Elk model', frame: 'First frame', ready: 'Ready', aria: 'Loading the 3D scene' };
+    const GROUPS = [
+      { milestone: 'engine', parts: [PARTS.bowl], label: L.engine },
+      { milestone: 'model', parts: [PARTS.cheekR, PARTS.cheekL], label: L.model },
+      { milestone: 'frame', parts: [PARTS.muzzle], label: L.frame },
+    ];
+    overlay.setAttribute('aria-label', L.aria);
+
+    const CROPS = ['tl', 'tr', 'bl', 'br'].map((k) => {
+      const el = $(`.pl-crop--${k}`);
+      return { el, inner: el.firstElementChild as HTMLElement, sx: k[1] === 'l' ? -1 : 1, sy: k[0] === 't' ? -1 : 1, h: null as Tween | null };
+    });
+
+    // ───────── состояние ─────────
+    let phase: 'waiting' | 'assembling' | 'locked' | 'exiting' | 'done' = 'waiting';
+    const at: Record<string, number | null> = { engine: null, model: null, frame: null };
+    let next = 0;
+    let enterAt = 0;
+    let lastSeatAt = -Infinity;
+    let captionShown = false;
+    let captionHidden = false;
+    let fraction = 0;
+    let lastFractionApplied = -1;
+    let headPosition: (() => number[] | null) | null = null;
+    let pulseAnims: Animation[] = [];
+    const timers: Record<string, number> = {};
+    const geo = { S: 220, h: 202 };
+
+    const noop = () => {};
+    const r3 = (n: number) => Math.round(n * 1000) / 1000;
+    const now = () => performance.now();
+    const since = () => now() - shownAt;
+    const later = (name: string, fn: () => void, ms: number) => {
+      clearTimeout(timers[name]);
+      timers[name] = window.setTimeout(fn, Math.max(0, ms));
+    };
+    const clearTimers = () => { for (const k in timers) clearTimeout(timers[k]); };
+    const record = (name: string) => { P?.milestones?.push({ name, t: Math.round(now()) }); };
+
+    function measure() {
+      const W = overlay.clientWidth;
+      const H = overlay.clientHeight;
+      // Было 88–136 px: на телефоне разлёт в ~22 px читался как чуть кривой значок.
+      const raw = Math.min(280, Math.max(160, Math.min(W * 0.17, H * 0.3)));
+      geo.S = 2 * Math.round(raw / 2);
+      geo.h = Math.round(geo.S * 0.92);
+      overlay.style.setProperty('--S', `${geo.S}px`);
+      overlay.style.setProperty('--h', `${geo.h}px`);
+    }
+
+    // WAAPI-твин, у которого можно точно прочитать текущее значение (progress уже с учётом
+    // кривой), чтобы любое движение передавалось следующему без рывка.
+    function tween(el: Element, from: Vec, to: Vec, render: (v: Vec) => Keyframe, opts: KeyframeAnimationOptions): Tween {
+      const a = el.animate([render(from), render(to)], { fill: 'both', ...opts });
+      return {
+        a,
+        value() {
+          let p: number | null = null;
+          try { p = a.effect?.getComputedTiming().progress ?? null; } catch { p = null; }
+          if (p == null) p = a.playState === 'finished' ? 1 : 0;
+          return from.map((v, i) => v + (to[i] - v) * p!);
+        },
+        cancel() { a.cancel(); },
+      };
+    }
+    const partFrame = (p: Part) => (v: Vec): Keyframe => ({
+      transform: `translate(${r3(p.ox * v[0] * 100)}%, ${r3(p.oy * v[0] * 100)}%) rotate(${r3(p.rot * v[0])}deg)`,
+      opacity: Math.max(0, Math.min(1, r3(v[1]))),
+    });
+    const guideFrame = (v: Vec): Keyframe => ({ clipPath: `inset(0px ${r3(v[1])}% 0px ${r3(v[0])}%)` });
+    const cropFrame = (c: (typeof CROPS)[number]) => (v: Vec): Keyframe => ({
+      translate: `${r3(c.sx * (v[0] - geo.h))}px ${r3(c.sy * (v[1] - geo.h))}px`,
+    });
+
+    // ───────── реальные вехи ─────────
+    function onMilestone(name: 'engine' | 'model' | 'frame') {
+      if (at[name] != null) return;
+      record(name);
+      const t = now();
+      at[name] = t;
+      // Поздняя веха подразумевает ранние.
+      if (at.engine == null) at.engine = t;
+      if (name === 'frame' && at.model == null) at.model = t;
+      overlay.setAttribute('aria-valuenow', String(['engine', 'model', 'frame'].filter((k) => at[k] != null).length));
+      if (phase === 'waiting' && name === 'frame') { fadeOut('complete', T.QUIET_FADE, 'linear'); return; }
+      if (phase === 'assembling') pump();
+    }
+
+    const listeners: Array<[string, EventListener]> = [
+      ['elk:engine', () => onMilestone('engine')],
+      ['elk:progress', ((e: CustomEvent) => {
+        const f = e.detail?.fraction;
+        if (typeof f !== 'number') return;
+        onMilestone('engine');
+        fraction = Math.max(fraction, Math.min(1, f));
+        if (fraction >= 1) onMilestone('model');
+        else applyByteDrift();
+        updateCaptionPercent();
+      }) as EventListener],
+      ['elk:ready', ((e: CustomEvent) => {
+        headPosition = typeof e.detail?.head === 'function' ? e.detail.head : null;
+        onMilestone('frame');
+      }) as EventListener],
+      ['elk:error', ((e: CustomEvent) => { record(`error:${e.detail?.reason}`); abort(`error:${e.detail?.reason}`); }) as EventListener],
+    ];
+    for (const [name, fn] of listeners) window.addEventListener(name, fn);
+
+    // Сцена могла уже закончить до того, как мы начали слушать.
+    const elkState = document.querySelector<HTMLElement>('.elk-stage')?.dataset.state;
+    if (elkState === 'ready') onMilestone('frame');
+    if (elkState === 'error') { abort('error:before-boot'); return; }
+
+    // ───────── сборка ─────────
+    function beginAssembly() {
+      if (phase !== 'waiting') return;
+      phase = 'assembling';
+      enterAt = now();
+
+      if (rm) {
+        for (const p of PART_LIST) p.h = tween(p.el, [0, 0], [0, RM_GHOST], partFrame(p), { duration: 320, easing: 'linear' });
+        for (const c of CROPS) c.inner.animate([{ opacity: 0 }, { opacity: CROP_WAIT }], { duration: 320, easing: 'linear', fill: 'both' });
+      } else {
+        PART_LIST.forEach((p, i) => {
+          const delay = [0, 1, 1, 2][i] * T.ENTER_STAGGER;
+          p.entering = true;
+          const h = (p.h = tween(p.el, [1.45, 0], [1, GHOST], partFrame(p), { duration: T.ENTER, delay, easing: EXPO }));
+          h.a.finished.then(() => {
+            if (p.h !== h) return;
+            p.entering = false;
+            if (!p.seated && phase === 'assembling') startDrift(p);
+          }, noop);
+          p.gh = tween(p.guide, [100, 0], [0, 0], guideFrame, { duration: 820, delay: 60 + delay, easing: EXPO });
+        });
+        for (const c of CROPS) {
+          c.h = tween(c.el, [geo.h + 12, geo.h + 12], [geo.h, geo.h], cropFrame(c), { duration: T.ENTER, easing: EXPO });
+          c.inner.animate([{ opacity: 0 }, { opacity: CROP_WAIT }], { duration: 480, easing: 'linear', fill: 'both' });
+        }
+      }
+
+      later('caption', showCaption, T.CAPTION_AFTER - since());
+      refreshPending();
+      pump();
+    }
+
+    function startDrift(p: Part) {
+      const cur = p.h ? p.h.value() : [1, GHOST];
+      p.h?.cancel();
+      const f = p.floor ?? FLOOR_OTHER;
+      p.h = tween(p.el, cur, [f, 1 - (1 - GHOST) * f], partFrame(p), { duration: T.DRIFT, easing: DRIFT_EASE });
+    }
+
+    // Пока модель качается, щёки идут к месту пропорционально байтам, а не по таймеру.
+    function applyByteDrift() {
+      if (rm || phase !== 'assembling' || GROUPS[next]?.milestone !== 'model') return;
+      if (fraction - lastFractionApplied < 0.04) return; // не пересоздавать анимацию на каждый чанк
+      lastFractionApplied = fraction;
+      const target = 1 - (1 - BYTE_FLOOR) * fraction;
+      for (const p of GROUPS[next].parts) {
+        if (p.seated || p.entering) continue;
+        p.floor = target;
+        const cur = p.h ? p.h.value() : [1, GHOST];
+        p.h?.cancel();
+        p.h = tween(p.el, cur, [target, 1 - (1 - GHOST) * target], partFrame(p), { duration: 420, easing: EXPO });
+      }
+    }
+
+    function refreshPending() {
+      const g = GROUPS[next];
+      if (!rm) {
+        for (const p of PART_LIST) {
+          if (p.seated) continue;
+          const f = g && g.parts.includes(p) ? FLOOR_NEXT : FLOOR_OTHER;
+          if (p.floor === f) continue;
+          p.floor = f;
+          if (!p.entering) startDrift(p);
+        }
+        if (g?.milestone === 'model' && fraction > 0) { lastFractionApplied = -1; applyByteDrift(); }
+      }
+      if (captionShown) setCaption();
+      armPulse(g);
+    }
+
+    // Сажает следующую группу, когда её веха наступила И последовательность это позволяет.
+    function pump() {
+      clearTimeout(timers.pump);
+      if (phase !== 'assembling') return;
+      const g = GROUPS[next];
+      if (!g || at[g.milestone] == null) return;
+      const earliest = Math.max(enterAt + T.SETTLE, lastSeatAt + T.SEAT_GAP);
+      if (now() < earliest) { later('pump', pump, earliest - now()); return; }
+      lastSeatAt = now();
+      next++;
+      seatGroup(g);
+      if (next >= GROUPS.length) lock();
+      else { refreshPending(); pump(); }
+    }
+
+    function seatGroup(g: (typeof GROUPS)[number]) {
+      stopPulse();
+      for (const p of g.parts) {
+        p.seated = true;
+        p.entering = false;
+        const cur = p.h ? p.h.value() : [rm ? 0 : 1, 0];
+        p.h?.cancel();
+        if (rm) {
+          p.h = tween(p.el, [0, cur[1]], [0, 1], partFrame(p), { duration: 260, easing: 'linear' });
+          continue;
+        }
+        // Посадка со щелчком: деталь на ~2 px проскакивает место и возвращается,
+        // а в точке посадки вспыхивает метка совмещения. Каждая веха ощущается, а не угадывается.
+        const overshoot = -2 / Math.max(1, geo.S * Math.hypot(p.ox, p.oy));
+        const frame = partFrame(p);
+        p.el.animate([frame(cur), { ...frame([overshoot, 1]), offset: 0.72 }, frame([0, 1])], { duration: T.SEAT, easing: EXPO, fill: 'both' });
+        p.h = null;
+        p.tick.animate(
+          [{ opacity: 0, transform: 'scale(0.6)' }, { opacity: 1, transform: 'scale(1)', offset: 0.35 }, { opacity: 0, transform: 'scale(1.15)' }],
+          { duration: 520, delay: 260, easing: 'linear', fill: 'both' },
+        );
+        if (p.gh) {
+          const gc = p.gh.value();
+          p.gh.cancel();
+          p.gh = tween(p.guide, gc, [gc[0], 100], guideFrame, { duration: 620, easing: EXPO });
+        }
+      }
+      if (captionShown) setCaption();
+    }
+
+    // ───────── честные сигналы ожидания ─────────
+    function armPulse(g: (typeof GROUPS)[number] | undefined) {
+      stopPulse();
+      if (rm || !g) return;
+      later('pulse', () => {
+        if (phase !== 'assembling' || GROUPS[next] !== g) return;
+        pulseAnims = g.parts.map((p) => p.pulse.animate([
+          { transform: 'translateX(88%)', opacity: 0 },
+          { opacity: 1, offset: 0.2 },
+          { opacity: 1, offset: 0.72 },
+          { transform: 'translateX(0%)', opacity: 0 },
+        ], { duration: T.PULSE, iterations: Infinity, easing: QUART }));
+      }, T.PULSE_AFTER);
+    }
+    function stopPulse() {
+      clearTimeout(timers.pulse);
+      for (const a of pulseAnims) a.cancel();
+      pulseAnims = [];
+    }
+
+    function roll(box: typeof idxBox, html: string) {
+      const old = box._cur;
+      if (old && old.dataset.html === html) return;
+      const nu = document.createElement('span');
+      nu.innerHTML = html;
+      nu.dataset.html = html;
+      box.appendChild(nu);
+      box._cur = nu;
+      if (rm) { old?.remove(); return; }
+      nu.animate([{ transform: 'translateY(110%)' }, { transform: 'translateY(0%)' }], { duration: 560, easing: EXPO, fill: 'both' });
+      old?.animate([{ transform: 'translateY(0%)' }, { transform: 'translateY(-110%)' }], { duration: 560, easing: EXPO, fill: 'forwards' })
+        .finished.then(() => old.remove(), noop);
+    }
+    function setCaption(label?: string) {
+      const done = next;
+      roll(idxBox, `${String(done).padStart(2, '0')}<span class="pl-dim">&nbsp;/&nbsp;03</span>`);
+      roll(labelBox, label ?? captionLabel());
+    }
+    // Процент — только на шаге скачивания модели и только из реальных байтов.
+    function captionLabel() {
+      const g = GROUPS[next];
+      if (!g) return L.ready;
+      if (g.milestone === 'model' && fraction > 0) return `${g.label} ${Math.floor(fraction * 100)}%`;
+      return g.label;
+    }
+    let lastPercentRollAt = 0;
+    function updateCaptionPercent() {
+      if (!captionShown || phase !== 'assembling' || GROUPS[next]?.milestone !== 'model') return;
+      if (now() - lastPercentRollAt < 240) return; // прокрутка подписи не должна дребезжать
+      lastPercentRollAt = now();
+      roll(labelBox, captionLabel());
+    }
+    function showCaption() {
+      if (phase !== 'assembling') return;
+      captionShown = true;
+      if (rm) cap.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: 'linear', fill: 'both' });
+      else rule.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 900, easing: EXPO, fill: 'both' });
+      setCaption();
+    }
+    function hideCaption() {
+      // Второй вызов не должен заново разворачивать уже схлопнутую линейку.
+      if (!captionShown || captionHidden) return;
+      captionHidden = true;
+      if (rm) { cap.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'linear', fill: 'forwards' }); return; }
+      for (const box of [idxBox, labelBox]) {
+        const old = box._cur;
+        if (!old) continue;
+        box._cur = null;
+        old.animate([{ transform: 'translateY(0%)' }, { transform: 'translateY(-110%)' }], { duration: 420, easing: QUART, fill: 'forwards' });
+      }
+      rule.style.transformOrigin = '100% 50%';
+      rule.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: 520, easing: QUART, fill: 'forwards' });
+    }
+
+    // ───────── замок и выходы ─────────
+    function lock() {
+      phase = 'locked';
+      clearTimeout(timers.caption);
+      stopPulse();
+      if (captionShown) setCaption(L.ready);
+      for (const c of CROPS) c.inner.animate([{ opacity: CROP_WAIT }, { opacity: 1 }], { duration: rm ? 200 : 360, easing: 'linear', fill: 'both' });
+
+      if (rm) { later('lock', () => fadeOut('complete', T.RM_FADE, QUART), T.RM_HOLD); return; }
+
+      // Готово так поздно, что посетитель уже заждался: без смыкания и перелёта.
+      if (since() > T.LATE_READY) { later('lock', () => openPage(T.LATE_EXIT, false), 120); return; }
+
+      const hc = Math.round(geo.S * 0.66);
+      for (const c of CROPS) {
+        const cur = c.h ? c.h.value() : [geo.h, geo.h];
+        c.h?.cancel();
+        c.h = tween(c.el, cur, [hc, hc], cropFrame(c), { duration: T.CLAMP, easing: EXPO });
+      }
+      later('hide-caption', hideCaption, T.READY_HOLD);
+      later('lock', () => openPage(T.EXIT, true), T.READY_HOLD + 180);
+    }
+
+    function openPage(duration: number, withGlide: boolean) {
+      if (phase !== 'locked') return;
+      phase = 'exiting';
+      if (P) { P.reason = 'complete'; P.revealStartedAt = Math.round(now()); }
+      inner.style.pointerEvents = 'none';
+
+      const W = overlay.clientWidth;
+      const H = overlay.clientHeight;
+      // Точка раскрытия — голова настоящего 3D-лося, спрошенная в последний момент:
+      // лось парит, и за время замка голова сдвинулась.
+      let hx = W / 2;
+      let hy = H / 2;
+      const head = withGlide && headPosition ? headPosition() : null;
+      if (head && head.every(Number.isFinite)) {
+        hx = Math.round(Math.min(W - 24, Math.max(24, head[0])));
+        hy = Math.round(Math.min(H - 24, Math.max(24, head[1])));
+      }
+      overlay.style.setProperty('--hx', `${hx}px`);
+      overlay.style.setProperty('--hy', `${hy}px`);
+
+      const dx = hx - W / 2;
+      const dy = hy - H / 2;
+      const glide = withGlide && (Math.abs(dx) > 4 || Math.abs(dy) > 4) ? T.GLIDE : 0;
+      if (glide) {
+        stage.animate([{ transform: 'translate(0px, 0px)' }, { transform: `translate(${dx}px, ${dy}px)` }], { duration: glide, easing: EXPO, fill: 'forwards' });
+      }
+
+      // Поздний выход приходит сюда без паузы на «Готово»: подпись и вспышки меток
+      // посадки иначе висели бы поверх уже открытой страницы до самого конца.
+      hideCaption();
+      for (const p of PART_LIST) p.tick.animate([{ opacity: 0 }], { duration: 200, easing: 'linear', fill: 'forwards' });
+
+      // Прокрутка возвращается, как только страница начинает показываться, а не после
+      // конца раскрытия: иначе видимая страница почти секунду не реагирует на колесо.
+      later('unlock', () => (window as any).__plUnlock?.(), glide);
+
+      // Знак выдыхает и растворяется, плиты расходятся от точки головы, а метки обреза
+      // едут вместе с краями проёма к углам экрана — рамка чертежа становится рамкой страницы.
+      markEl.animate([{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(1.1)', opacity: 0 }], { duration: 440, delay: glide, easing: QUART, fill: 'forwards' });
+      const slabOpts: KeyframeAnimationOptions = { duration, delay: glide, easing: QUART, fill: 'forwards' };
+      slabs.l.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-100%)' }], slabOpts);
+      slabs.r.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }], slabOpts);
+      slabs.t.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }], slabOpts);
+      slabs.b.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }], slabOpts);
+
+      const inset = 14;
+      for (const c of CROPS) {
+        const cur = c.h ? c.h.value() : [geo.h, geo.h];
+        c.h?.cancel();
+        // Цель — угол экрана, выраженный в той же системе, что и cropFrame (от центра сцены после перелёта).
+        const tx = c.sx < 0 ? hx - inset : W - hx - inset;
+        const ty = c.sy < 0 ? hy - inset : H - hy - inset;
+        c.h = tween(c.el, cur, [tx, ty], cropFrame(c), slabOpts);
+        c.inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, delay: glide + duration - 60, easing: 'linear', fill: 'forwards' });
+      }
+
+      // Страница не просто открывается, а «приходит»: заголовки hero доводятся до места.
+      document.querySelectorAll<HTMLElement>('.hero h1').forEach((h1) => {
+        h1.style.transformOrigin = h1.closest('.right') ? '100% 100%' : '0% 100%';
+        h1.animate([{ transform: 'scale(1.045)' }, { transform: 'scale(1)' }], { duration: 1600, delay: glide, easing: EXPO });
+      });
+
+      later('finish', finish, glide + duration + 280);
+    }
+
+    function abort(reason: string) {
+      if (phase === 'waiting' || phase === 'assembling' || phase === 'locked') fadeOut(reason, rm ? T.RM_FADE : T.ABORT_FADE, QUART);
+    }
+
+    // Отказ — без церемонии: знак честно остаётся несобранным, заслонка просто растворяется.
+    function fadeOut(reason: string, duration: number, easing: string) {
+      if (phase === 'exiting' || phase === 'done') return;
+      phase = 'exiting';
+      if (P) { P.reason = reason; P.revealStartedAt = Math.round(now()); }
+      clearTimers();
+      stopPulse();
+      inner.style.pointerEvents = 'none';
+      if (duration > 0) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration, easing, fill: 'forwards' });
+      later('finish', finish, duration + 20);
+    }
+
+    function finish() {
+      if (phase === 'done') return;
+      phase = 'done';
+      clearTimers();
+      stopPulse();
+      if (P) P.revealDoneAt = Math.round(now());
+      window.removeEventListener('resize', measure);
+      for (const [name, fn] of listeners) window.removeEventListener(name, fn);
+      document.removeEventListener('astro:before-swap', finish);
+      overlay.remove(); // вместе с ним уходит и CSS-страховка
+      (window as any).__plUnlock?.();
+      root.classList.remove('pl-on', 'pl-rm');
+    }
+
+    // Переход через ClientRouter, пока оверлей ещё на экране (например, с клавиатуры):
+    // снимаем блокировку и таймеры до того, как документ заменится.
+    document.addEventListener('astro:before-swap', finish);
+
+    // ───────── старт ─────────
+    measure();
+    window.addEventListener('resize', measure);
+    later('grace', beginAssembly, T.GRACE - since());
+    later('hard-timeout', () => { if (at.frame == null) abort('timeout'); }, T.HARD_TIMEOUT - since());
+  }
+</script>

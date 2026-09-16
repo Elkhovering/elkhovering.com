@@ -2,6 +2,7 @@
 import { ClientRouter } from 'astro:transitions';
 import Nav from '../components/Nav.astro';
 import ElkScene from '../components/ElkScene.astro';
+import Preloader from '../components/Preloader.astro';
 import Cursor from '../components/Cursor.astro';
 import '../styles/global.css';
 import '../styles/mobile.css';
@@ -9,10 +10,13 @@ import '../styles/mobile.css';
 interface Props {
   title?: string;
   description?: string;
+  /** Прелоадер 3D-сцены. Только для главной — на остальных страницах лось скрыт. */
+  preloader?: boolean;
 }
 const {
   title = 'Elkhovering — Evgenii Elkhov',
   description = 'Creative direction and digital operations for businesses between small and scaling. One person — design, web, process — end to end.',
+  preloader = false,
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
@@ -49,12 +53,61 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     </script>
     <ClientRouter />
 
+    {/* Включение прелоадера. Обязательно ДО SmoothScroll.js ниже: перехват колеса
+        должен встать раньше его слушателя. */}
+    {preloader && (
+      <script is:inline>
+        (() => {
+          // Только полная загрузка главной, и только раз за сессию.
+          try {
+            if (location.pathname !== '/' || sessionStorage.getItem('elk-preloader') === '1') return;
+            sessionStorage.setItem('elk-preloader', '1');
+            // ClientRouter при переходе на главную исполняет новые скрипты из <head> уже
+            // в загруженном документе: прелоадер там не показываем, но сцену посетитель
+            // увидит сейчас, так что и после перезагрузки в этой сессии он не нужен.
+            if (document.readyState !== 'loading') return;
+          } catch (e) {
+            return; // хранилище недоступно — обойдёмся без прелоадера, сцена проявится сама
+          }
+
+          const root = document.documentElement;
+          root.classList.add('pl-on', 'pl-lock');
+          if (matchMedia('(prefers-reduced-motion: reduce)').matches) root.classList.add('pl-rm');
+          window.__preloader = { shownAt: performance.now(), milestones: [], revealStartedAt: null, revealDoneAt: null, reason: null };
+
+          // overflow: hidden останавливает только нативную прокрутку. SmoothScroll.js
+          // крутит страницу через scrollBy в обход overflow, но пропускает события
+          // с defaultPrevented — а перехват в фазе capture успевает раньше него.
+          const keys = new Set([' ', 'PageUp', 'PageDown', 'Home', 'End', 'ArrowUp', 'ArrowDown']);
+          const block = (e) => {
+            if (e.type === 'keydown' && !keys.has(e.key)) return;
+            e.preventDefault();
+          };
+          const types = ['wheel', 'touchmove', 'keydown'];
+          const opts = { capture: true, passive: false };
+          types.forEach((t) => addEventListener(t, block, opts));
+          const unlock = () => {
+            types.forEach((t) => removeEventListener(t, block, opts));
+            root.classList.remove('pl-lock');
+          };
+          window.__plUnlock = unlock;
+
+          // Страховки, если контроллер так и не проснулся: вместе с CSS-страховкой
+          // оверлея и отдельным таймером.
+          addEventListener('animationend', (e) => { if (e.animationName === 'pl-failsafe') unlock(); });
+          setTimeout(unlock, 10500);
+        })();
+      </script>
+    )}
+
     {/* Плавный wheel-скролл. Балаж Галамбоси SmoothScroll: лёгкий wheel→scrollBy
         с easing, без своего scroll-стейта. Не ломает middle-click autoscroll,
         scrollbar-drag, scrollIntoView и history.scrollRestoration. */}
     <script is:inline src="/vendor/SmoothScroll.min.js"></script>
   </head>
   <body>
+    {/* Первым в body — чтобы оверлей попал в первую же отрисовку. */}
+    {preloader && <Preloader />}
     <Nav />
     <ElkScene />
 
