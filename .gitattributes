@@ -21,5 +21,7 @@ Dockerfile text eol=lf
 *.ico   binary
 *.woff  binary
 *.woff2 binary
+*.webp  binary
+*.glb   binary
 *.xlsx  binary
 *.pdf   binary

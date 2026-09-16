@@ -1,0 +1,62 @@
+---
+// 3D-лось на three.js. Заменил Spline — подробности в src/scripts/elk-scene.js.
+//
+// transition:persist держит канвас и WebGL-контекст между страницами,
+// поэтому модель грузится один раз за сессию.
+---
+<div class="elk-stage" transition:persist="elk" aria-hidden="true">
+  <canvas class="elk-canvas"></canvas>
+</div>
+
+<script>
+  // three.js и модель не скачиваются вовсе, пока посетитель не окажется на главной.
+  // На остальных страницах лось скрыт, и 3D там — чистый вес без пользы.
+  // Spline, для сравнения, грузился на каждой странице, даже там, где был невидим.
+  type Controller = { setActive(active: boolean): void };
+
+  let controller: Controller | null = null;
+  let mounting: Promise<void> | null = null;
+
+  const isHome = () => location.pathname === '/' || location.pathname === '';
+
+  async function sync() {
+    const stage = document.querySelector<HTMLElement>('.elk-stage');
+    if (!stage) return;
+
+    const home = isHome();
+    stage.dataset.route = home ? 'home' : 'away';
+    if (!home) {
+      controller?.setActive(false);
+      return;
+    }
+
+    mounting ??= import('../scripts/elk-scene.js')
+      .then(({ mountElk }) => {
+        controller = mountElk(stage);
+      })
+      .catch((error) => {
+        console.error('[elk] scene module failed to load', error);
+        stage.dataset.state = 'error';
+        window.dispatchEvent(new CustomEvent('elk:error', { detail: { reason: 'module-failed' } }));
+      });
+    await mounting;
+
+    // Пока модуль качался, посетитель мог уйти с главной.
+    controller?.setActive(isHome());
+  }
+
+  // Сразу, а не только по astro:page-load: при первой загрузке это событие приходит
+  // лишь на window 'load', то есть после ВСЕХ картинок главной — а это ~19 МБ PNG
+  // галереи работ. Сцена и прелоадер стояли бы за ними в очереди. Модуль исполняется
+  // после разбора документа, так что .elk-stage уже на месте; повторный вызов на
+  // page-load безвреден — импорт кешируется в `mounting`.
+  sync();
+  document.addEventListener('astro:page-load', sync);
+
+  // Сцена сохраняется между страницами вместе с классами. Если уйти с главной кликом
+  // по работе, пока на ней висит hover-эффект, .elk-faded (mix-blend-mode: overlay)
+  // оставался, и лось возвращался выцветшим.
+  document.addEventListener('astro:before-swap', () => {
+    document.querySelector('.elk-stage')?.classList.remove('elk-faded');
+  });
+</script>

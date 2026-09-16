@@ -14,10 +14,22 @@ export default defineConfig({
     '/ru/works/[slug]': '/works/[slug]',
   },
 
-  // <spline-viewer> — это кастомный web-component, Astro не должен пытаться его обрабатывать.
   vite: {
-    optimizeDeps: {
-      exclude: ['@splinetool/viewer']
-    }
-  }
+    build: {
+      // three.js — единственный чанк крупнее стандартных 500 КБ (~660 КБ, ~168 КБ в gzip),
+      // и грузится он только на главной. Порог чуть выше него: предупреждение
+      // остаётся полезным, если в бандл случайно попадёт что-то ещё тяжёлое.
+      chunkSizeWarningLimit: 700,
+      rollupOptions: {
+        output: {
+          // three.js — отдельным чанком со своим хешем. Иначе любая правка сцены
+          // лося меняет хеш общего файла, и вернувшийся посетитель заново качает
+          // ~168 КБ библиотеки, которая не менялась.
+          manualChunks(id) {
+            if (id.includes('/node_modules/three/')) return 'three';
+          },
+        },
+      },
+    },
+  },
 });

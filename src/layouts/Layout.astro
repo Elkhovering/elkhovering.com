@@ -1,7 +1,7 @@
 ---
 import { ClientRouter } from 'astro:transitions';
 import Nav from '../components/Nav.astro';
-import SplineScene from '../components/SplineScene.astro';
+import ElkScene from '../components/ElkScene.astro';
 import Cursor from '../components/Cursor.astro';
 import '../styles/global.css';
 import '../styles/mobile.css';
@@ -56,7 +56,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
   </head>
   <body>
     <Nav />
-    <SplineScene />
+    <ElkScene />
 
     <slot />
 

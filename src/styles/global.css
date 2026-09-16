@@ -37,7 +37,9 @@ body {
   box-sizing: inherit;
 }
 
-.spline-wrapper {
+/* 3D-лось (src/components/ElkScene.astro). Слои вокруг него рассчитаны на
+   z-index 50: одна сетка работ лежит под ним, другая — над. */
+.elk-stage {
   position: fixed;
   top: 0;
   left: 0;
@@ -45,18 +47,36 @@ body {
   height: 100vh;
   z-index: 50;
   pointer-events: none;
-  transition: 0.65s ease-out;
+  /* Здесь раньше стоял `transition: 0.65s` на все свойства — наследство обёртки
+     Spline. Анимировать было нечего: mix-blend-mode не анимируется, а visibility
+     переключается дискретно. Переход только задерживал скрытие лося на 0.65 с
+     при уходе с главной. Плавное появление делает канвас своей прозрачностью. */
 }
 
-spline-viewer {
+/* Видим только на главной; visibility, а не display, чтобы канвас не терял
+   размер и не пересоздавал буфер при каждом возвращении. */
+.elk-stage[data-route="away"] {
+  visibility: hidden;
+}
+
+.elk-canvas {
   position: sticky;
   top: 0;
+  display: block;
   width: 100%;
   height: 100%;
   z-index: 50;
+  /* Проявляется, когда первый кадр готов. На первом заходе на главную его
+     прикрывает прелоадер; при переходе с другой страницы это и есть появление. */
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
 }
 
-.faded-spline {
+.elk-stage[data-state="ready"] .elk-canvas {
+  opacity: 1;
+}
+
+.elk-faded {
   mix-blend-mode: overlay;
 }
 

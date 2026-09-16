@@ -156,7 +156,7 @@ function initSkew() {
 
 function initWorkHovers() {
   const hoverBackground = document.querySelector('.hover-background');
-  const spline = document.querySelector('.spline-wrapper');
+  const elk = document.querySelector('.elk-stage');
   const overlay = document.getElementById('projectOverlay');
   const titleEl = document.getElementById('projectTitle');
   const descEl = document.getElementById('projectDesc');
@@ -170,7 +170,7 @@ function initWorkHovers() {
         hoverBackground.style.opacity = '1';
       }
       images.forEach((o) => { if (o !== img) o.classList.add('faded'); });
-      spline?.classList.add('faded-spline');
+      elk?.classList.add('elk-faded');
 
       const data = translations.projects?.[img.dataset.id];
       if (data && overlay) {
@@ -184,7 +184,7 @@ function initWorkHovers() {
     img.addEventListener('mouseleave', () => {
       if (hoverBackground) hoverBackground.style.opacity = '0';
       images.forEach((o) => o.classList.remove('faded'));
-      spline?.classList.remove('faded-spline');
+      elk?.classList.remove('elk-faded');
       if (overlay) overlay.style.opacity = '0';
     });
   });
@@ -200,16 +200,10 @@ function initRellax() {
   });
 }
 
-function updateSplineVisibility() {
-  const spline = document.querySelector('.spline-wrapper');
-  if (!spline) return;
-  const isHome = window.location.pathname === '/' || window.location.pathname === '';
-  spline.style.visibility = isHome ? '' : 'hidden';
-  spline.style.pointerEvents = isHome ? '' : 'none';
-}
+// Видимость 3D-лося по маршруту решает сам src/components/ElkScene.astro —
+// там же, где решается, грузить ли three.js вообще.
 
 function pageInit() {
-  updateSplineVisibility();
   const isHome = window.location.pathname === '/' || window.location.pathname === '';
   if (isHome) {
     initSkew();
