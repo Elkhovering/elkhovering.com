@@ -172,11 +172,13 @@ function initWorkHovers() {
       images.forEach((o) => { if (o !== img) o.classList.add('faded'); });
       elk?.classList.add('elk-faded');
 
-      const data = translations.projects?.[img.dataset.id];
-      if (data && overlay) {
-        titleEl.textContent = data.title;
-        descEl.textContent = data.desc;
-        dateEl.textContent = data.date;
+      // Тексты рендерит Works.astro из content collection — в обеих локалях.
+      const lang = currentLang === 'ru' ? 'Ru' : 'En';
+      const title = img.dataset[`title${lang}`];
+      if (title && overlay) {
+        titleEl.textContent = title;
+        descEl.textContent = img.dataset[`summary${lang}`] || '';
+        dateEl.textContent = img.dataset.year || '';
         overlay.style.opacity = '1';
       }
     });

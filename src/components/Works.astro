@@ -1,8 +1,37 @@
 ---
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { getCollection } from 'astro:content';
+import { imageMetadata } from 'astro/assets/utils';
 import { works } from '../data/works.js';
 
-const backWorks = works.filter((w) => w.layer === 'back');
-const frontWorks = works.filter((w) => w.layer === 'front');
+// Подпись при наведении (название, описание, год) берётся из тех же .md, что и кейсы:
+// правка в админке меняет и кейс, и главную. Обе локали лежат в data-атрибутах,
+// client.js выбирает нужную по текущему языку.
+const all = await getCollection('works');
+const bySlug = (lang: string) =>
+  new Map(all.filter((e: any) => e.id.startsWith(`${lang}/`) && !e.data.draft).map((e: any) => [e.data.slug, e.data]));
+const en = bySlug('en');
+const ru = bySlug('ru');
+
+// Обложки грузятся лениво: сразу это 18 МБ, и на медленном мобильном они забирали
+// канал у 3D-лося и задерживали window.load — а с ним и astro:page-load, то есть
+// переключение языка, Rellax и курсор — до полутора минут. Размеры читаются из
+// самих файлов: браузер знает пропорции до загрузки, вёрстка не прыгает, и Rellax,
+// запоминающий позиции при старте, считает их по окончательной сетке.
+const sizeOf = async (src: string) => {
+  const { width, height } = await imageMetadata(await readFile(join(process.cwd(), 'public', src)), src);
+  return { width, height };
+};
+
+// Плитка без опубликованного кейса в обеих локалях вела бы на 404 — не показываем её.
+const published = await Promise.all(
+  works
+    .filter((w) => en.has(w.id) && ru.has(w.id))
+    .map(async (w) => ({ ...w, ...(await sizeOf(w.image)), en: en.get(w.id), ru: ru.get(w.id) })),
+);
+const backWorks = published.filter((w) => w.layer === 'back');
+const frontWorks = published.filter((w) => w.layer === 'front');
 ---
 <div class="sec-title works-title" data-i18n="ui.works">/works</div>
 
@@ -19,8 +48,17 @@ const frontWorks = works.filter((w) => w.layer === 'front');
           class="work-image"
           data-cursor="see-more"
           data-id={w.id}
+          data-title-en={w.en.title}
+          data-title-ru={w.ru.title}
+          data-summary-en={w.en.summary}
+          data-summary-ru={w.ru.summary}
+          data-year={w.en.year}
           src={w.image}
-          alt={w.id}
+          width={w.width}
+          height={w.height}
+          loading="lazy"
+          decoding="async"
+          alt={w.en.title}
           style={`view-transition-name: work-${w.id};`}
         />
       </a>
@@ -39,8 +77,17 @@ const frontWorks = works.filter((w) => w.layer === 'front');
           class="work-image"
           data-cursor="see-more"
           data-id={w.id}
+          data-title-en={w.en.title}
+          data-title-ru={w.ru.title}
+          data-summary-en={w.en.summary}
+          data-summary-ru={w.ru.summary}
+          data-year={w.en.year}
           src={w.image}
-          alt={w.id}
+          width={w.width}
+          height={w.height}
+          loading="lazy"
+          decoding="async"
+          alt={w.en.title}
           style={`view-transition-name: work-${w.id};`}
         />
       </a>

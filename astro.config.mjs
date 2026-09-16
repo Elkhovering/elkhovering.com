@@ -21,6 +21,14 @@ export default defineConfig({
       // остаётся полезным, если в бандл случайно попадёт что-то ещё тяжёлое.
       chunkSizeWarningLimit: 700,
       rollupOptions: {
+        // Works.astro читает размеры обложек через imageMetadata из astro/assets/utils.
+        // Этот модуль Astro реэкспортирует хелперы, которые при сборке выпадают, и Rollup
+        // сообщает о неиспользуемых импортах внутри самого Astro. Глушим ровно этот
+        // ложный сигнал, остальные предупреждения видны как раньше.
+        onwarn(warning, warn) {
+          if (warning.code === 'UNUSED_EXTERNAL_IMPORT' && warning.exporter === '@astrojs/internal-helpers/remote') return;
+          warn(warning);
+        },
         output: {
           // three.js — отдельным чанком со своим хешем. Иначе любая правка сцены
           // лося меняет хеш общего файла, и вернувшийся посетитель заново качает
